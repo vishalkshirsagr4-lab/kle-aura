@@ -6,6 +6,10 @@ import {
   Clock,
   Sparkles,
   Trophy,
+  Heart,
+  Eye,
+  Share2,
+  Check,
 } from "lucide-react";
 import { addPaperCard } from "../../three/paperCardManager";
 import { getPaperMaterial, GROUP_INK } from "../../three/paperTexture";
@@ -16,67 +20,102 @@ const CAN_HOVER =
   window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /* Centered CSS Poster Fallback matching exact 1 : 1.414 aspect ratio */
-function PosterFallback({ event, rule, ink }) {
+function PosterFallback({ event, rule, ink, onPreview }) {
   const Icon = event?.icon;
   const numStr = `#${String(event?.id || 0).padStart(2, "0")}`;
   const groupLabel = (rule?.group || event?.category || "").toUpperCase();
+  const hasImage = Boolean(event?.image);
 
   return (
     <div
       aria-hidden="true"
-      className="relative size-full flex flex-col justify-between overflow-hidden rounded-xl bg-[#faf9f6] p-3 text-slate-800 shadow-md border border-slate-300/60 dark:border-slate-700/60"
+      onClick={onPreview}
+      className="group/poster relative size-full flex flex-col justify-between overflow-hidden rounded-xl bg-[#faf9f6] text-slate-800 shadow-sm border border-slate-300/60 dark:border-slate-700/60 cursor-pointer"
     >
-      {/* Subtle paper grid */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-20"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg,transparent 0 24px,rgba(148,163,184,.2) 24px 25px),repeating-linear-gradient(90deg,transparent 0 24px,rgba(148,163,184,.2) 24px 25px)",
-        }}
-      />
-      {/* Framed inner border */}
-      <div
-        className="pointer-events-none absolute inset-1.5 rounded-lg border"
-        style={{ borderColor: `${ink}40` }}
-      />
+      {/* Background image or subtle paper grid */}
+      {hasImage ? (
+        <div className="absolute inset-0 overflow-hidden">
+          <img
+            src={event.image}
+            alt={event.name}
+            className="size-full object-cover transition-transform duration-500 group-hover/poster:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-slate-950/40" />
+        </div>
+      ) : (
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg,transparent 0 20px,rgba(148,163,184,.2) 20px 21px),repeating-linear-gradient(90deg,transparent 0 20px,rgba(148,163,184,.2) 20px 21px)",
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-1 rounded-lg border"
+            style={{ borderColor: `${ink}40` }}
+          />
+        </>
+      )}
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="relative z-10 flex items-center justify-between p-1.5 sm:p-2">
         <span
-          className="rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white shadow-xs"
+          className="rounded px-1.5 py-0.2 text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wide text-white shadow-xs backdrop-blur-xs"
           style={{ background: ink }}
         >
           {groupLabel}
         </span>
-        <span className="text-xs font-black tracking-tight" style={{ color: ink }}>
+        <span
+          className={`text-[10px] sm:text-xs font-black tracking-tight ${
+            hasImage ? "text-white drop-shadow-md" : ""
+          }`}
+          style={hasImage ? {} : { color: ink }}
+        >
           {numStr}
         </span>
       </div>
 
-      {/* Center Medallion */}
-      <div className="relative z-10 my-auto flex flex-col items-center justify-center">
-        <div
-          className="grid size-14 place-items-center rounded-full border-2 border-dashed shadow-xs sm:size-16"
-          style={{
-            borderColor: `${ink}88`,
-            background: `${ink}12`,
-            color: ink,
-          }}
+      {/* Center content */}
+      <div className="relative z-10 my-auto flex flex-col items-center justify-center p-1.5 text-center">
+        {!hasImage && (
+          <div
+            className="grid size-9 sm:size-11 place-items-center rounded-full border border-dashed shadow-xs mb-1"
+            style={{
+              borderColor: `${ink}88`,
+              background: `${ink}12`,
+              color: ink,
+            }}
+          >
+            {Icon && <Icon className="size-4 sm:size-5" aria-hidden="true" />}
+          </div>
+        )}
+        <p
+          className={`text-[11px] sm:text-xs font-black leading-tight line-clamp-2 px-1 ${
+            hasImage ? "text-white drop-shadow-md" : "text-slate-900"
+          }`}
         >
-          {Icon && <Icon className="size-7 sm:size-8" aria-hidden="true" />}
-        </div>
-        <p className="mt-2 max-w-[94%] text-center text-xs font-extrabold leading-tight text-slate-900 sm:text-sm line-clamp-2">
           {event?.name}
         </p>
-        <span className="mt-0.5 text-[9px] font-semibold opacity-85" style={{ color: ink }}>
+        <span
+          className={`mt-0.5 text-[8px] sm:text-[9px] font-bold ${
+            hasImage ? "text-white/80" : "opacity-85"
+          }`}
+          style={hasImage ? {} : { color: ink }}
+        >
           {rule?.type}
         </span>
       </div>
 
       {/* Footer stamp */}
-      <div className="relative z-10 flex items-center justify-between text-[8px] font-bold text-slate-500">
-        <span>AI-AURA 2K26</span>
-        <span>KLE BCA &amp; BBA</span>
+      <div
+        className={`relative z-10 flex items-center justify-between px-2 py-1 text-[7px] sm:text-[8px] font-bold ${
+          hasImage ? "text-white/70" : "text-slate-500"
+        }`}
+      >
+        <span>AI-AURA</span>
+        <span>KLE</span>
       </div>
     </div>
   );
@@ -88,17 +127,24 @@ export default function EventCard({
   hit = false,
   dimmed = false,
   mode = "3d",
+  layout = "grid", // "grid" (columns & rows) or "list" (horizontal row)
+  isSaved = false,
+  onToggleSave,
+  onPreviewPoster,
   onViewRules,
   onRegister,
   onFail,
 }) {
+  const cardRef = useRef(null);
   const posterRef = useRef(null);
   const handleRef = useRef(null);
   const hoverRef = useRef(false);
   const pressRef = useRef(false);
   const [threeReady, setThreeReady] = useState(false);
+  const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
+  const [copied, setCopied] = useState(false);
 
-  const ink = GROUP_INK[rule?.group] || "#4f46e5";
+  const ink = GROUP_INK[rule?.group] || event?.accentColor || "#4f46e5";
 
   const sync = () => {
     handleRef.current?.setInteraction({
@@ -136,18 +182,28 @@ export default function EventCard({
   }, [mode, event, rule, onFail]);
 
   useEffect(() => {
-    handleRef.current?.setDim(dimmed);
-  }, [dimmed, mode]);
+    return () => {
+      handleRef.current?.dispose();
+      handleRef.current = null;
+    };
+  }, []);
 
   const onPointerEnter = (e) => {
-    if (!CAN_HOVER || e.pointerType === "touch") return;
     hoverRef.current = true;
+    if (e.pointerType !== "touch") {
+      updateTilt(e);
+    }
     sync();
   };
 
   const onPointerLeave = () => {
     hoverRef.current = false;
     pressRef.current = false;
+    setGlarePos((p) => ({ ...p, opacity: 0 }));
+    if (cardRef.current) {
+      cardRef.current.style.transform =
+        "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)";
+    }
     handleRef.current?.resetTilt();
     sync();
   };
@@ -162,17 +218,40 @@ export default function EventCard({
     pressRef.current = false;
     if (e.pointerType === "touch") {
       handleRef.current?.resetTilt();
+      if (cardRef.current) {
+        cardRef.current.style.transform =
+          "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)";
+      }
+      setGlarePos((p) => ({ ...p, opacity: 0 }));
     }
     sync();
   };
 
   const updateTilt = (e) => {
-    const el = posterRef.current;
+    const el = cardRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    const nx = (e.clientX - r.left) / r.width - 0.5;
-    const ny = (e.clientY - r.top) / r.height - 0.5;
+
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+
+    const nx = (clientX - r.left) / r.width - 0.5;
+    const ny = (clientY - r.top) / r.height - 0.5;
+
+    // Specular glare position in %
+    const gx = Math.round(((clientX - r.left) / r.width) * 100);
+    const gy = Math.round(((clientY - r.top) / r.height) * 100);
+    setGlarePos({ x: gx, y: gy, opacity: 0.85 });
+
+    // CSS 3D Card rotation
+    const rx = -ny * 10;
+    const ry = nx * 10;
+    el.style.transform = `perspective(1000px) rotateX(${rx.toFixed(
+      2
+    )}deg) rotateY(${ry.toFixed(2)}deg) translateY(-3px) scale(1.015)`;
+
+    // Pass tilt to Three.js paper sheet inside the card
     const touchScale = e.pointerType === "touch" ? 0.7 : 1;
     handleRef.current?.setTilt(nx * touchScale, ny * touchScale);
   };
@@ -185,16 +264,196 @@ export default function EventCard({
     }
   };
 
+  const handleShare = (e) => {
+    e.stopPropagation();
+    const shareText = `Check out ${event.name} at AI-AURA 2K26 Festival (KLE BCA & BBA)!`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(`${shareText} - https://kle-aura.vercel.app`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const is3dActive = mode === "3d" && threeReady;
 
+  // ================= HORIZONTAL ROW / LIST LAYOUT =================
+  if (layout === "list") {
+    return (
+      <article
+        ref={cardRef}
+        data-event-card="true"
+        className={`group relative flex flex-row items-stretch rounded-2xl border bg-surface transition-all duration-200 overflow-hidden shadow-xs hover:shadow-md hover:border-accent/50 ${
+          hit
+            ? "border-accent ring-2 ring-accent/30 shadow-sm"
+            : "border-border/80"
+        } ${dimmed ? "opacity-35 saturate-50" : "opacity-100"}`}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
+      >
+        {/* Left Side: Compact Poster Thumbnail */}
+        <div
+          className="relative w-24 sm:w-32 md:w-36 shrink-0 bg-slate-900 overflow-hidden cursor-pointer flex items-center justify-center p-1.5"
+          onClick={() => onPreviewPoster?.(event)}
+        >
+          {event?.image ? (
+            <img
+              src={event.image}
+              alt={event.name}
+              className="size-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            <div className="size-full flex items-center justify-center text-white/70 text-xs">
+              #{event.id}
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+
+          {/* Badge & Number */}
+          <span
+            className="absolute top-1.5 left-1.5 rounded px-1 py-0.2 text-[8px] font-extrabold uppercase text-white shadow-xs"
+            style={{ background: ink }}
+          >
+            #{String(event.id).padStart(2, "0")}
+          </span>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreviewPoster?.(event);
+            }}
+            className="absolute bottom-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white/90 hover:bg-black/90 hover:text-white backdrop-blur-xs transition"
+            title="Preview Poster"
+          >
+            <Eye className="size-3" />
+          </button>
+        </div>
+
+        {/* Right Side: Event Details & Inline Actions */}
+        <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-3 min-w-0">
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className="truncate rounded px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white shadow-xs"
+                  style={{ background: ink }}
+                >
+                  {rule?.group || event?.category}
+                </span>
+                <span className="text-[10px] sm:text-xs font-semibold text-muted truncate">
+                  {rule?.type}
+                </span>
+              </div>
+
+              {/* Action Icons: Bookmark & Share */}
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSave?.(event.id);
+                  }}
+                  className={`grid size-6 sm:size-7 place-items-center rounded-full border transition ${
+                    isSaved
+                      ? "border-rose-400 bg-rose-50 text-rose-600 dark:bg-rose-950/80 dark:text-rose-400"
+                      : "border-border bg-surface text-muted hover:text-foreground"
+                  }`}
+                  title={isSaved ? "Saved" : "Save"}
+                >
+                  <Heart
+                    className={`size-3 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`}
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="grid size-6 sm:size-7 place-items-center rounded-full border border-border bg-surface text-muted hover:text-foreground transition"
+                  title="Share"
+                >
+                  {copied ? (
+                    <Check className="size-3 text-emerald-600" />
+                  ) : (
+                    <Share2 className="size-3" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <h3 className="mt-1 text-xs sm:text-sm md:text-base font-extrabold text-foreground truncate">
+              {event?.name}
+            </h3>
+
+            {event?.tagline && (
+              <p className="mt-0.5 text-[10px] sm:text-xs text-muted truncate">
+                {event.tagline}
+              </p>
+            )}
+
+            {rule?.chips && rule.chips.length > 0 && (
+              <div className="mt-1.5 hidden xs:flex flex-wrap gap-1">
+                {rule.chips.slice(0, 3).map((chip, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 text-[9px] font-semibold text-foreground/80"
+                  >
+                    {idx === 0 ? (
+                      <Users className="size-2.5 text-muted" />
+                    ) : idx === 1 ? (
+                      <Clock className="size-2.5 text-muted" />
+                    ) : (
+                      <Trophy className="size-2.5 text-muted" />
+                    )}
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-2 flex items-center justify-end gap-2 border-t border-border/40 pt-1.5">
+            <button
+              type="button"
+              className="inline-flex h-6 sm:h-7 items-center justify-center gap-1 rounded-lg border border-border bg-surface px-2 text-[10px] sm:text-xs font-bold text-foreground transition hover:border-accent hover:text-accent"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewRules?.(event.id);
+              }}
+            >
+              <FileText className="size-3" />
+              <span>Rules</span>
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-6 sm:h-7 items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-accent to-primary px-2.5 text-[10px] sm:text-xs font-bold text-white shadow-xs transition hover:opacity-95"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRegister?.(event.name);
+              }}
+            >
+              <span>Register</span>
+              <ArrowRight className="size-3" />
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  // ================= COLUMNS & ROWS (GRID) LAYOUT =================
   return (
     <article
+      ref={cardRef}
       data-event-card="true"
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+      className={`group relative flex flex-col justify-between rounded-2xl border bg-surface transition-all duration-200 [transform-style:preserve-3d] will-change-transform ${
         hit
-          ? "border-accent ring-3 ring-accent/30 shadow-md shadow-accent/20"
-          : "border-border shadow-xs hover:border-accent/40"
+          ? "border-accent ring-2 sm:ring-3 ring-accent/30 shadow-md shadow-accent/20"
+          : "border-border/80 shadow-xs hover:border-accent/50 hover:shadow-lg"
       } ${dimmed ? "opacity-35 saturate-50" : "opacity-100"}`}
+      style={{
+        transform:
+          "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)",
+      }}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
       onPointerDown={onPointerDown}
@@ -202,13 +461,75 @@ export default function EventCard({
       onPointerCancel={onPointerUp}
       onPointerMove={onPointerMove}
     >
-      {/* ================= CLEAN, PROPORTIONED POSTER VIEWPORT ================= */}
-      {/* Seamless, luminous container background (no dark-gray box) with mobile-optimized height */}
-      <div className="relative h-[210px] sm:h-[235px] md:h-[255px] w-full overflow-hidden rounded-t-2xl bg-gradient-to-b from-primary/[0.04] via-accent/[0.02] to-transparent dark:from-primary/[0.08] dark:via-accent/[0.03] dark:to-transparent border-b border-border/40 flex items-center justify-center p-2 sm:p-2.5">
+      {/* Dynamic Specular Sheen / Glare Layer */}
+      <div
+        className="pointer-events-none absolute inset-0 z-30 rounded-2xl transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle 220px at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, 0.25), transparent 70%)`,
+          opacity: glarePos.opacity,
+        }}
+      />
+
+      {/* Floating Action Pills (Bookmark & Quick Zoom) */}
+      <div className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 z-40 flex items-center gap-1 [transform:translateZ(25px)]">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSave?.(event.id);
+          }}
+          className={`grid size-6 sm:size-7 place-items-center rounded-full border shadow-xs backdrop-blur-md transition-all duration-200 ${
+            isSaved
+              ? "border-rose-400/80 bg-rose-50 text-rose-600 dark:bg-rose-950/80 dark:text-rose-400"
+              : "border-white/50 bg-white/80 text-muted hover:text-foreground hover:bg-white dark:border-slate-700/60 dark:bg-slate-900/80"
+          }`}
+          title={isSaved ? "Remove from bookmarks" : "Save / Shortlist event"}
+          aria-label={isSaved ? "Saved" : "Save"}
+        >
+          <Heart
+            className={`size-3 sm:size-3.5 transition-transform active:scale-125 ${
+              isSaved ? "fill-rose-500 text-rose-500" : ""
+            }`}
+          />
+        </button>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPreviewPoster?.(event);
+          }}
+          className="grid size-6 sm:size-7 place-items-center rounded-full border border-white/50 bg-white/80 text-muted hover:text-foreground hover:bg-white dark:border-slate-700/60 dark:bg-slate-900/80 shadow-xs backdrop-blur-md transition-all"
+          title="Quick preview poster"
+          aria-label="Preview poster"
+        >
+          <Eye className="size-3 sm:size-3.5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={handleShare}
+          className="hidden xs:grid size-6 sm:size-7 place-items-center rounded-full border border-white/50 bg-white/80 text-muted hover:text-foreground hover:bg-white dark:border-slate-700/60 dark:bg-slate-900/80 shadow-xs backdrop-blur-md transition-all"
+          title="Share event link"
+          aria-label="Share"
+        >
+          {copied ? (
+            <Check className="size-3 sm:size-3.5 text-emerald-600" />
+          ) : (
+            <Share2 className="size-3 sm:size-3.5" />
+          )}
+        </button>
+      </div>
+
+      {/* ================= COMPACT PROPORTIONED POSTER VIEWPORT ================= */}
+      <div
+        className="relative h-[115px] xs:h-[135px] sm:h-[155px] md:h-[170px] lg:h-[185px] w-full overflow-hidden rounded-t-2xl bg-gradient-to-b from-primary/[0.04] via-accent/[0.02] to-transparent dark:from-primary/[0.08] dark:via-accent/[0.03] dark:to-transparent border-b border-border/40 flex items-center justify-center p-1.5 sm:p-2 [transform:translateZ(20px)] [transform-style:preserve-3d] cursor-pointer"
+        onClick={() => onPreviewPoster?.(event)}
+      >
         {/* Poster 3D Mesh anchor element sized to exact 1 : 1.414 paper proportions */}
         <div
           ref={posterRef}
-          className="relative h-[92%] aspect-[1/1.414] max-w-full mx-auto touch-manipulation select-none flex items-center justify-center"
+          className="relative h-[94%] aspect-[1/1.414] max-w-full mx-auto touch-manipulation select-none flex items-center justify-center"
           role="img"
           aria-label={`${event?.name} official event poster sheet`}
         >
@@ -218,68 +539,71 @@ export default function EventCard({
               is3dActive ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
-            <PosterFallback event={event} rule={rule} ink={ink} />
+            <PosterFallback
+              event={event}
+              rule={rule}
+              ink={ink}
+              onPreview={() => onPreviewPoster?.(event)}
+            />
           </div>
 
           {/* Integrated small 3D Paper badge inside the poster viewport */}
-          <div className="pointer-events-none absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 rounded-full border border-primary/20 bg-white/90 dark:bg-slate-900/90 px-2 py-0.5 text-[9px] font-bold text-primary shadow-xs backdrop-blur-xs">
-            <Sparkles className="size-2.5 text-accent" />
-            <span>3D Paper</span>
+          <div className="pointer-events-none absolute bottom-1 left-1 z-10 flex items-center gap-0.5 rounded-full border border-primary/20 bg-white/95 dark:bg-slate-900/95 px-1.5 py-0.2 text-[8px] font-bold text-primary shadow-xs backdrop-blur-xs [transform:translateZ(15px)]">
+            <Sparkles className="size-2 text-accent" />
+            <span>3D</span>
           </div>
         </div>
       </div>
 
       {/* ================= COMPACT CARD BODY ================= */}
-      <div className="flex flex-1 flex-col justify-between p-3 sm:p-3.5">
+      <div className="flex flex-1 flex-col justify-between p-2 sm:p-3 [transform:translateZ(15px)] [transform-style:preserve-3d]">
         <div>
           {/* Category Badge & Event # */}
-          <div className="mb-1.5 flex items-center justify-between gap-1.5">
-            <div className="flex items-center gap-1.5 min-w-0">
+          <div className="mb-1 flex items-center justify-between gap-1 [transform:translateZ(10px)]">
+            <div className="flex items-center gap-1 min-w-0">
               <span
-                className="truncate rounded-md px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white shadow-xs"
+                className="truncate rounded px-1.5 py-0.2 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xs"
                 style={{ background: ink }}
               >
                 {rule?.group || event?.category}
               </span>
               {rule?.proposed && (
-                <span className="shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                  PROPOSED
+                <span className="shrink-0 rounded bg-amber-500/15 px-1 py-0.2 text-[8px] font-extrabold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                  NEW
                 </span>
               )}
             </div>
-            <span className="shrink-0 text-xs font-black text-muted">
+            <span className="shrink-0 text-[10px] sm:text-xs font-black text-muted">
               #{String(event?.id || 0).padStart(2, "0")}
             </span>
           </div>
 
           {/* Event Title */}
-          <h3 className="text-sm font-extrabold leading-snug tracking-tight text-foreground sm:text-base line-clamp-1 sm:line-clamp-2">
+          <h3 className="text-xs sm:text-sm font-extrabold leading-tight tracking-tight text-foreground line-clamp-1 [transform:translateZ(12px)]">
             {event?.name}
           </h3>
 
-          {/* Judging focus / description */}
-          {rule?.judging && (
-            <p className="mt-1 text-xs text-muted line-clamp-1">
-              <span className="font-semibold text-foreground/80">Focus:</span> {rule.judging}
+          {/* Event Tagline */}
+          {event?.tagline && (
+            <p className="mt-0.5 text-[10px] sm:text-xs text-muted line-clamp-1 italic">
+              {event.tagline}
             </p>
           )}
 
           {/* Compact specs chips */}
           {rule?.chips && rule.chips.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
+            <div className="mt-1.5 flex flex-wrap gap-1 [transform:translateZ(8px)]">
               {rule.chips.slice(0, 2).map((chip, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-slate-100/60 dark:bg-slate-800/50 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/80"
+                  className="inline-flex items-center gap-0.5 rounded border border-border/70 bg-slate-100/70 dark:bg-slate-800/60 px-1 py-0.2 text-[8px] sm:text-[9px] font-medium text-foreground/80 truncate max-w-full"
                 >
                   {idx === 0 ? (
-                    <Users className="size-2.5 text-muted" />
-                  ) : idx === 1 ? (
-                    <Clock className="size-2.5 text-muted" />
+                    <Users className="size-2 text-muted shrink-0" />
                   ) : (
-                    <Trophy className="size-2.5 text-muted" />
+                    <Clock className="size-2 text-muted shrink-0" />
                   )}
-                  {chip}
+                  <span className="truncate">{chip}</span>
                 </span>
               ))}
             </div>
@@ -287,23 +611,23 @@ export default function EventCard({
         </div>
 
         {/* ================= ACTIONS ================= */}
-        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border/40 pt-2.5">
+        <div className="mt-2 grid grid-cols-2 gap-1.5 border-t border-border/40 pt-1.5 sm:pt-2 [transform:translateZ(12px)]">
           <button
             type="button"
-            className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 py-1 text-xs font-bold text-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-7 sm:h-8 items-center justify-center gap-1 rounded-lg border border-border bg-surface px-1.5 text-[10px] sm:text-xs font-bold text-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
             onClick={(e) => {
               e.stopPropagation();
               onViewRules?.(event.id);
             }}
             aria-label={`View rules for ${event.name}`}
           >
-            <FileText className="size-3.5 shrink-0" />
+            <FileText className="size-3 shrink-0" />
             <span>Rules</span>
           </button>
 
           <button
             type="button"
-            className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-primary px-2.5 py-1 text-xs font-bold text-white shadow-xs shadow-accent/20 transition hover:opacity-95 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-7 sm:h-8 items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-accent to-primary px-1.5 text-[10px] sm:text-xs font-bold text-white shadow-xs transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
             onClick={(e) => {
               e.stopPropagation();
               onRegister?.(event.name);
@@ -311,7 +635,7 @@ export default function EventCard({
             aria-label={`Register for ${event.name}`}
           >
             <span>Register</span>
-            <ArrowRight className="size-3.5 shrink-0" />
+            <ArrowRight className="size-3 shrink-0" />
           </button>
         </div>
       </div>

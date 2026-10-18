@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 /* High-DPI Per-event paper poster designs drawn to a canvas (1024 x 1448 px).
-   Crisp vector typography, rich colors, authentic paper cardstock texture.
+   Crisp vector typography, authentic photography cover, and cardstock texture.
    Mipmapping and anisotropic filtering ensure pin-sharp clarity on all displays.
    UV orientation: repeat(1, -1) around center(0.5, 0.5) with no rotation. */
 
@@ -20,7 +20,7 @@ const GROUP_INK = {
 };
 export { GROUP_INK };
 
-const cache = new Map(); // id -> { canvas, ctx, texture, material, design }
+const cache = new Map(); // id -> { canvas, ctx, texture, material, design, loadedImage }
 let fontsHooked = false;
 let maxAnisotropy = 8;
 
@@ -85,7 +85,7 @@ function drawIconNode(ctx, iconNode, x, y, size, color) {
 function drawWrapped(ctx, text, x, y, maxWidth, baseSize, font) {
   let size = baseSize;
   ctx.font = `900 ${size}px ${font}`;
-  while (ctx.measureText(text).width > maxWidth && size > 42) {
+  while (ctx.measureText(text).width > maxWidth && size > 38) {
     size -= 3;
     ctx.font = `900 ${size}px ${font}`;
   }
@@ -101,15 +101,67 @@ function drawWrapped(ctx, text, x, y, maxWidth, baseSize, font) {
     const w = Math.max(ctx.measureText(line1).width, ctx.measureText(line2).width);
     if (!best || w < best.w) best = { line1, line2, w };
   }
-  size = Math.min(size, 62);
+  size = Math.min(size, 58);
   ctx.font = `900 ${size}px ${font}`;
-  ctx.fillText(best.line1, x, y - size * 0.62);
-  ctx.fillText(best.line2, x, y + size * 0.62);
+  ctx.fillText(best.line1, x, y - size * 0.58);
+  ctx.fillText(best.line2, x, y + size * 0.58);
 }
 
-function paintStatic(state) {
+// Draw image with object-fit: cover and optional rounded corners
+function drawCoverImage(ctx, img, x, y, w, h, radius = 16) {
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+  const targetRatio = w / h;
+  let sx, sy, sw, sh;
+  if (imgRatio > targetRatio) {
+    sh = img.naturalHeight;
+    sw = sh * targetRatio;
+    sx = (img.naturalWidth - sw) / 2;
+    sy = 0;
+  } else {
+    sw = img.naturalWidth;
+    sh = sw / targetRatio;
+    sx = 0;
+    sy = (img.naturalHeight - sh) / 2;
+  }
+
+  ctx.save();
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, w, h, radius);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+  ctx.clip();
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+
+  // Subtle gradient vignette for text legibility & photography polish
+  const grad = ctx.createLinearGradient(x, y, x, y + h);
+  grad.addColorStop(0, "rgba(15, 23, 42, 0.15)");
+  grad.addColorStop(0.65, "rgba(15, 23, 42, 0.05)");
+  grad.addColorStop(1, "rgba(15, 23, 42, 0.65)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, w, h);
+
+  ctx.restore();
+
+  // Clean border around photo
+  ctx.save();
+  ctx.strokeStyle = "rgba(15, 23, 42, 0.16)";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, w, h, radius);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function paintStatic(state, loadedImg = null) {
   const { ctx, design } = state;
-  const { number, title, iconNode, group, type, chips, proposed } = design;
+  const { number, title, iconNode, group, type, chips, proposed, tagline } = design;
+  const img = loadedImg || state.loadedImage;
   const ink = GROUP_INK[group] || "#4f46e5";
   const sans = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
@@ -148,18 +200,14 @@ function paintStatic(state) {
   ctx.lineWidth = 2.0;
   ctx.strokeRect(38, 38, TEX_W - 76, TEX_H - 76);
 
-  // Top corner registration marks
+  // Corner registration marks
   const mLen = 14;
   ctx.strokeStyle = ink;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  // top-left
   ctx.moveTo(48, 48 + mLen); ctx.lineTo(48, 48); ctx.lineTo(48 + mLen, 48);
-  // top-right
   ctx.moveTo(TEX_W - 48 - mLen, 48); ctx.lineTo(TEX_W - 48, 48); ctx.lineTo(TEX_W - 48, 48 + mLen);
-  // bottom-left
   ctx.moveTo(48, TEX_H - 48 - mLen); ctx.lineTo(48, TEX_H - 48); ctx.lineTo(48 + mLen, 48);
-  // bottom-right
   ctx.moveTo(TEX_W - 48 - mLen, TEX_H - 48); ctx.lineTo(TEX_W - 48, TEX_H - 48); ctx.lineTo(TEX_W - 48, TEX_H - 48 - mLen);
   ctx.stroke();
 
@@ -202,41 +250,61 @@ function paintStatic(state) {
     ctx.fillText("PROPOSED", TEX_W - 58 - pw / 2, 147);
   }
 
-  // Large centered icon medallion
-  const iconCx = TEX_W / 2;
-  const iconCy = 410;
-  const radius = 152;
+  // Cover image or fallback medallion
+  const imgX = 58;
+  const imgY = 126;
+  const imgW = TEX_W - 116;
+  const imgH = 560;
 
-  // Medallion soft glow
-  const medGrad = ctx.createRadialGradient(iconCx, iconCy, 30, iconCx, iconCy, radius);
-  medGrad.addColorStop(0, hexToRgba(ink, 0.18));
-  medGrad.addColorStop(1, hexToRgba(ink, 0.04));
-  ctx.fillStyle = medGrad;
-  ctx.beginPath();
-  ctx.arc(iconCx, iconCy, radius, 0, Math.PI * 2);
-  ctx.fill();
+  if (img && img.complete && img.naturalWidth > 0) {
+    drawCoverImage(ctx, img, imgX, imgY, imgW, imgH, 20);
 
-  // Medallion dashed ring
-  ctx.strokeStyle = hexToRgba(ink, 0.75);
-  ctx.lineWidth = 4;
-  ctx.setLineDash([14, 10]);
-  ctx.stroke();
-  ctx.setLineDash([]);
+    // Floating small icon badge inside image (bottom right)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.beginPath();
+    ctx.roundRect
+      ? ctx.roundRect(imgX + imgW - 84, imgY + imgH - 84, 68, 68, 16)
+      : ctx.rect(imgX + imgW - 84, imgY + imgH - 84, 68, 68);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
-  // Draw the Lucide icon in high resolution
-  drawIconNode(ctx, iconNode, iconCx - 96, iconCy - 96, 192, ink);
+    drawIconNode(ctx, iconNode, imgX + imgW - 74, imgY + imgH - 74, 48, ink);
+  } else {
+    // Large centered icon medallion when image is not present
+    const iconCx = TEX_W / 2;
+    const iconCy = 400;
+    const radius = 152;
+
+    const medGrad = ctx.createRadialGradient(iconCx, iconCy, 30, iconCx, iconCy, radius);
+    medGrad.addColorStop(0, hexToRgba(ink, 0.18));
+    medGrad.addColorStop(1, hexToRgba(ink, 0.04));
+    ctx.fillStyle = medGrad;
+    ctx.beginPath();
+    ctx.arc(iconCx, iconCy, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = hexToRgba(ink, 0.75);
+    ctx.lineWidth = 4;
+    ctx.setLineDash([14, 10]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawIconNode(ctx, iconNode, iconCx - 96, iconCy - 96, 192, ink);
+  }
 
   // Event title (prominent, bold, 100% crisp)
   ctx.fillStyle = INK;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  drawWrapped(ctx, title, TEX_W / 2, 720, TEX_W - 120, 68, sans);
+  drawWrapped(ctx, title, TEX_W / 2, 770, TEX_W - 120, 64, sans);
 
   // Type subtitle
   ctx.fillStyle = hexToRgba(ink, 0.95);
   ctx.font = `700 32px ${sans}`;
   ctx.textAlign = "center";
-  ctx.fillText(type || "", TEX_W / 2, 870);
+  ctx.fillText(type || "", TEX_W / 2, 915);
 
   // Specs pill
   if (chips && chips.length) {
@@ -248,17 +316,26 @@ function paintStatic(state) {
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.roundRect
-      ? ctx.roundRect(TEX_W / 2 - textW / 2, 930, textW, 58, 29)
-      : ctx.rect(TEX_W / 2 - textW / 2, 930, textW, 58);
+      ? ctx.roundRect(TEX_W / 2 - textW / 2, 975, textW, 58, 29)
+      : ctx.rect(TEX_W / 2 - textW / 2, 975, textW, 58);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#334155";
     ctx.textBaseline = "middle";
-    ctx.fillText(text, TEX_W / 2, 959);
+    ctx.fillText(text, TEX_W / 2, 1004);
   }
 
-  // Footer bar: Festival info
+  // Tagline or quote
+  if (tagline) {
+    ctx.font = `italic 500 24px ${sans}`;
+    ctx.fillStyle = "#64748b";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`“${tagline}”`, TEX_W / 2, 1100);
+  }
+
+  // Footer bar: Festival info & verification stamps
   ctx.strokeStyle = "rgba(15, 23, 42, 0.14)";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -292,7 +369,7 @@ function hookFontReload() {
   document.fonts.ready.then(() => {
     for (const state of cache.values()) {
       paintStatic(state);
-      state.texture.needsUpdate = true;
+      if (state.texture) state.texture.needsUpdate = true;
     }
   }).catch(() => {});
 }
@@ -309,13 +386,15 @@ export function getPaperMaterial(event, rule) {
   const design = {
     number: event.id,
     title: event.name,
+    image: event.image,
+    tagline: event.tagline,
     iconNode: event.icon?.iconNode,
-    group: rule?.group,
+    group: rule?.group || event.group,
     type: rule?.type,
     chips: rule?.chips,
     proposed: !!rule?.proposed,
   };
-  const state = { canvas, ctx, design };
+  const state = { canvas, ctx, design, loadedImage: null };
   paintStatic(state);
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -342,6 +421,21 @@ export function getPaperMaterial(event, rule) {
   state.texture = texture;
   state.material = material;
   cache.set(event.id, state);
+
+  // Asynchronously load real photography and re-paint texture once ready
+  if (design.image) {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      state.loadedImage = img;
+      paintStatic(state, img);
+      if (state.texture) {
+        state.texture.needsUpdate = true;
+      }
+    };
+    img.src = design.image;
+  }
+
   hookFontReload();
   return material;
 }
