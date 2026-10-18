@@ -27,7 +27,7 @@ function RegistrationsTable({ regs, onDelete }) {
   return (
     <section className="rounded-2xl border border-border bg-surface p-5 shadow-lg shadow-black/5 sm:p-7">
       <div className="mb-3 flex flex-wrap gap-3">
-        <div className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-full border-2 border-border bg-field px-4 text-muted focus-within:border-accent">
+        <div className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-xl border border-border bg-field px-4 text-muted transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
           <FaMagnifyingGlass className="shrink-0" />
           <input
             className="min-w-0 flex-1 bg-transparent py-3 text-foreground outline-none placeholder:text-muted"
@@ -37,7 +37,7 @@ function RegistrationsTable({ regs, onDelete }) {
           />
         </div>
         <select
-          className="rounded-full border-2 border-border bg-field px-5 py-3 text-foreground"
+          className="field-control w-auto min-w-40"
           value={eventFilter}
           onChange={(e) => setEventFilter(e.target.value)}
         >

@@ -112,7 +112,7 @@ function EventSettings({ onUnauthorized }) {
             <FaCalendarDays /> Event date
           </label>
           <input
-            className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+            className="field-control"
             id="eventDate"
             name="eventDate"
             type="date"
@@ -130,7 +130,7 @@ function EventSettings({ onUnauthorized }) {
               <FaClock /> Start time
             </label>
             <input
-              className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+              className="field-control"
               id="startTime"
               name="startTime"
               type="time"
@@ -146,7 +146,7 @@ function EventSettings({ onUnauthorized }) {
               <FaClock /> End time
             </label>
             <input
-              className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+              className="field-control"
               id="endTime"
               name="endTime"
               type="time"
@@ -164,7 +164,7 @@ function EventSettings({ onUnauthorized }) {
             <FaLocationDot /> Venue
           </label>
           <input
-            className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+            className="field-control"
             id="venue"
             name="venue"
             maxLength={120}
@@ -185,7 +185,7 @@ function EventSettings({ onUnauthorized }) {
               <Icon /> {label}
             </label>
             <input
-              className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+              className="field-control"
               id={name}
               name={name}
               type="url"
@@ -198,7 +198,7 @@ function EventSettings({ onUnauthorized }) {
 
         <button
           type="submit"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-primary to-accent px-5 py-3 font-bold text-white shadow-lg shadow-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-white shadow-md shadow-primary/15 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <FaFloppyDisk /> {saving ? "Saving..." : "Save"}
         </button>

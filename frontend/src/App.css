@@ -1,41 +1,37 @@
-/* ============================================================
-   AI-AURA global styles — only live rules remain.
-   Component styling is done with Tailwind utilities.
-   ============================================================ */
-
 :root {
-  --primary: #4f7cff;
-  --accent: #8b5cf6;
-  --cyan: #36e4ff;
-  --navy: #111827;
-  --obsidian: #0b0d12;
-  --dark: #3b5bdb;
-  --mid: #4f7cff;
-  --bg: #f5f7ff;
+  color-scheme: light;
+  --primary: #4f46e5;
+  --accent: #7c3aed;
+  --cyan: #0891b2;
+  --navy: #172554;
+  --obsidian: #101828;
+  --dark: #4338ca;
+  --mid: #4f46e5;
+  --bg: #f7f8fc;
   --surface: #ffffff;
-  --border: #e3e8f7;
+  --border: #e2e8f0;
   --field: #ffffff;
-  --text: #0b0d12;
-  --muted: #6b7280;
-  --shadow: rgba(11, 13, 18, 0.1);
+  --text: #172033;
+  --muted: #64748b;
+  --shadow: rgba(15, 23, 42, 0.09);
   --success: #16a34a;
   --warning: #f59e0b;
   --error: #dc2626;
 }
 
 html[data-theme="dark"] {
-  --dark: #9db4ff;
-  --mid: #7f9dff;
-  --bg: #0b0d12;
-  --surface: #111827;
-  --border: rgba(255, 255, 255, 0.09);
-  --field: #0f1522;
-  --text: #f5f7ff;
-  --muted: #9ca3af;
-  --shadow: rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+  --dark: #a5b4fc;
+  --mid: #818cf8;
+  --bg: #0b1020;
+  --surface: #121a2b;
+  --border: rgba(148, 163, 184, 0.18);
+  --field: #0f1728;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --shadow: rgba(0, 0, 0, 0.3);
 }
 
-/* atmospheric lighting behind everything */
 body::before {
   content: "";
   position: fixed;
@@ -43,21 +39,8 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(
-      60rem 40rem at 8% -8%,
-      rgba(79, 124, 255, 0.16),
-      transparent 60%
-    ),
-    radial-gradient(
-      50rem 36rem at 100% 0%,
-      rgba(139, 92, 246, 0.14),
-      transparent 55%
-    ),
-    radial-gradient(
-      40rem 30rem at 50% 110%,
-      rgba(54, 228, 255, 0.07),
-      transparent 60%
-    );
+    radial-gradient(55rem 30rem at 0% 0%, rgba(99, 102, 241, 0.07), transparent 62%),
+    radial-gradient(48rem 32rem at 100% 12%, rgba(124, 58, 237, 0.05), transparent 60%);
 }
 
 html[data-theme="dark"] body::after {
@@ -66,12 +49,12 @@ html[data-theme="dark"] body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.2;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 10%, transparent 75%);
 }
 
 svg.lucide {
@@ -81,11 +64,10 @@ svg.lucide {
 }
 
 :focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 2px;
+  outline: 3px solid rgba(79, 70, 229, 0.45);
+  outline-offset: 3px;
 }
 
-/* cards lean toward the pointer (driven by useTilt.js) */
 .tilt {
   position: relative;
   transform: perspective(900px) rotateX(var(--rx, 0deg))
@@ -93,9 +75,9 @@ svg.lucide {
   transform-style: preserve-3d;
   transition:
     transform 0.15s ease-out,
-    translate 0.25s,
     border-color 0.25s,
-    box-shadow 0.25s;
+    box-shadow 0.25s,
+    background-color 0.25s;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -116,9 +98,49 @@ svg.lucide {
 .tilt:hover::after {
   opacity: 1;
 }
-.tilt > * {
-  transform: translateZ(24px);
+
+.event-card {
+  transform-style: preserve-3d;
+  -webkit-tap-highlight-color: transparent;
 }
-.tilt .event-icon {
-  transform: translateZ(48px);
+
+@media (hover: hover) and (pointer: fine) {
+  .event-card--fallback {
+    transition:
+      transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 240ms ease;
+  }
+
+  .event-card--fallback:hover {
+    transform: perspective(900px) rotateX(var(--card-rx, 0deg))
+      rotateY(var(--card-ry, 0deg)) translateY(-4px) rotate(-0.3deg)
+      scale(1.015);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.18);
+  }
+
+  .event-card--3d:hover {
+    transform: perspective(900px) rotateX(var(--card-rx, 0deg))
+      rotateY(var(--card-ry, 0deg)) scale(1.015);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .event-card {
+    transition-duration: 160ms;
+  }
+
+  .event-card--3d:active {
+    scale: 0.985;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

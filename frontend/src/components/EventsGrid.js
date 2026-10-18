@@ -11,8 +11,8 @@ function EventsGrid({ onSelect }) {
   return (
     <section>
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
-        <h2 className="flex items-center gap-2 border-l-[6px] border-accent pl-4 text-2xl font-extrabold sm:text-3xl">
-          <FaStar className="text-accent" /> 18 EVENTS
+        <h2 className="section-heading">
+          <FaStar className="text-accent" /> Explore the events
         </h2>
         <p className="text-sm text-muted">
           Tap an event to pick it in the form

@@ -68,20 +68,20 @@ function AdminDashboard({ onLogout }) {
   };
 
   return (
-    <div className="mx-auto max-w-[1280px] p-3 sm:p-8 print:invisible">
-      <header className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-obsidian to-primary p-4 text-white shadow-[0_18px_44px_rgba(79,124,255,0.35)] sm:p-6 print:hidden">
+    <div className="mx-auto max-w-[1320px] px-4 py-5 sm:px-8 sm:py-8 print:invisible">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 text-foreground shadow-sm sm:p-6 print:hidden">
         <div className="flex items-center gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 text-xl">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-xl text-primary">
             <FaUserShield />
           </div>
           <div>
             <h1 className="text-xl font-bold leading-tight">AI-AURA Admin</h1>
-            <p className="text-sm text-[#9db4ff]">Event control panel</p>
+            <p className="text-sm text-muted">Event control panel</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/15 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={load}
             disabled={loading}
           >
@@ -89,12 +89,12 @@ function AdminDashboard({ onLogout }) {
           </button>
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/15 px-5 py-2.5 text-sm font-bold text-white no-underline transition-colors hover:bg-white/25"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground no-underline transition-colors hover:border-primary/50 hover:bg-primary/5"
           >
             <FaArrowLeft /> Student portal
           </Link>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/15 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rose-500/50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100"
             onClick={onLogout}
           >
             <FaRightFromBracket /> Logout
@@ -102,11 +102,11 @@ function AdminDashboard({ onLogout }) {
         </div>
       </header>
 
-      <nav className="mb-5 flex gap-2 overflow-x-auto pb-2 print:hidden">
+      <nav className="mb-6 flex gap-2 overflow-x-auto pb-2 print:hidden" aria-label="Admin sections">
         {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-3 font-bold transition-all ${tab === id ? "border-transparent bg-gradient-to-br from-primary to-accent text-white shadow-lg shadow-primary/30" : "border-border bg-surface text-muted hover:border-accent"}`}
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${tab === id ? "border-primary bg-primary text-white shadow-md shadow-primary/20" : "border-border bg-surface text-muted hover:border-primary/50 hover:text-foreground"}`}
             onClick={() => setTab(id)}
           >
             <Icon /> {label}

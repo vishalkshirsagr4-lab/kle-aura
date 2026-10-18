@@ -38,7 +38,7 @@ function StudentPortal() {
   const pick = (name) => setSelectedEvent({ name, key: Date.now() });
 
   return (
-    <div className="mx-auto max-w-[1180px] px-3 py-3 sm:px-8 sm:py-8" id="top">
+    <div className="mx-auto max-w-[1320px] px-4 py-4 sm:px-8 sm:py-8 lg:px-10" id="top">
       <PosterPopup />
       <StickyNav />
       <LiveRegistrations />
@@ -50,7 +50,7 @@ function StudentPortal() {
       <div className="reveal translate-y-12 opacity-0 transition duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none [&.in]:translate-y-0 [&.in]:opacity-100">
         <StatsBand />
       </div>
-      <div className="reveal relative z-[41] translate-y-12 opacity-0 transition duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none [&.in]:translate-y-0 [&.in]:opacity-100">
+      <div>
         <EventExplorer onSelect={pick} />
       </div>
       <div className="reveal translate-y-12 opacity-0 transition duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none [&.in]:translate-y-0 [&.in]:opacity-100">

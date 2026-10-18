@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { CheckCircle2 as DoneIcon, FileText as DoneFile } from "lucide-react";
 import { PDF_URL } from "../data/rules";
 import {
@@ -74,6 +75,11 @@ const fields = [
   },
 ];
 
+/* Portalled to <body>: the section it lives in sits inside a reveal transform,
+   which would clamp this `fixed` backdrop to the form box and paint it under
+   the sticky nav and toasts. */
+const overlay = (node) => createPortal(node, document.body);
+
 function RegistrationForm({ selectedEvent, info }) {
   const perks = [
     "Open to PUC students only",
@@ -86,6 +92,19 @@ function RegistrationForm({ selectedEvent, info }) {
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(null);
+  const doneRef = useRef(null);
+
+  // Move focus into the confirmation dialog and hand it back on close
+  useEffect(() => {
+    if (!done) return undefined;
+    const opener = document.activeElement;
+    doneRef.current?.focus?.({ preventScroll: true });
+    return () => {
+      if (opener && typeof opener.focus === "function") {
+        opener.focus({ preventScroll: true });
+      }
+    };
+  }, [done]);
 
   // When a card is tapped in the events grid, pre-select that event
   useEffect(() => {
@@ -166,10 +185,10 @@ function RegistrationForm({ selectedEvent, info }) {
 
   return (
     <section
-      className="mb-10 grid grid-cols-1 overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl shadow-black/10 lg:grid-cols-[0.85fr_1.15fr]"
+      className="mb-12 grid scroll-mt-24 grid-cols-1 overflow-hidden rounded-3xl border border-border bg-surface shadow-lg shadow-slate-900/5 lg:grid-cols-[0.8fr_1.2fr]"
       id="register"
     >
-      <aside className="relative overflow-hidden bg-gradient-to-br from-primary to-accent p-7 text-white before:absolute before:-bottom-24 before:-right-20 before:size-64 before:rounded-full before:bg-cyan before:opacity-30 before:blur-3xl">
+      <aside className="relative overflow-hidden bg-gradient-to-br from-[#312e81] via-primary to-accent p-7 text-white before:absolute before:-bottom-24 before:-right-20 before:size-64 before:rounded-full before:bg-white before:opacity-10 before:blur-3xl sm:p-9 lg:p-10">
         <div className="relative z-10">
           <h2 className="mb-2 text-3xl font-extrabold">Reserve your spot</h2>
           <p className="mb-5 text-white/90">
@@ -203,7 +222,7 @@ function RegistrationForm({ selectedEvent, info }) {
                   </label>
                   {type === "select" ? (
                     <select
-                      className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent focus:ring-4 focus:ring-accent/20"
+                      className="field-control"
                       id={name}
                       name={name}
                       value={formData[name]}
@@ -218,7 +237,7 @@ function RegistrationForm({ selectedEvent, info }) {
                     </select>
                   ) : (
                     <input
-                      className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent/20"
+                      className="field-control"
                       id={name}
                       type={type}
                       name={name}
@@ -235,7 +254,7 @@ function RegistrationForm({ selectedEvent, info }) {
 
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-br from-primary to-accent px-8 py-4 text-lg font-extrabold text-white shadow-xl shadow-primary/30 transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-bold text-white shadow-md shadow-primary/20 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
             disabled={loading}
           >
             <FaCircleCheck />
@@ -253,16 +272,18 @@ function RegistrationForm({ selectedEvent, info }) {
           </div>
         )}
       </div>
-      {done && (
+      {done && overlay(
         <div
           className="fixed inset-0 z-[1300] grid place-items-center bg-obsidian/80 p-4 backdrop-blur-md"
           onClick={() => setDone(null)}
         >
           <div
+            ref={doneRef}
             className="animate-sheet-up relative w-full max-w-[460px] rounded-3xl border border-border bg-[radial-gradient(30rem_14rem_at_50%_-10%,rgba(79,124,255,.3),transparent_70%)] bg-surface p-6 text-center text-foreground shadow-2xl sm:p-8"
             role="dialog"
             aria-modal="true"
             aria-label="Registration confirmed"
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 grid size-[72px] place-items-center rounded-full bg-gradient-to-br from-emerald-600 to-cyan text-3xl text-white shadow-[0_0_0_8px_rgba(22,163,74,.15),0_0_40px_rgba(54,228,255,.35)]">

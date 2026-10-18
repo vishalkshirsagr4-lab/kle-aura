@@ -26,6 +26,7 @@ function makeCore(animData) {
     alpha: true,
     antialias: true,
     powerPreference: "high-performance",
+    preserveDrawingBuffer: true,
   });
   const coarse =
     typeof window.matchMedia === "function" &&
@@ -88,8 +89,7 @@ function failAll(state) {
   });
 }
 
-function fitCamera(view, aspect) {
-  const cam = view.camera;
+function fitCamera(cam, aspect) {
   cam.aspect = aspect;
   // projected extent of the sheet (with crumple headroom) at the target plane
   const projW = 1.14;
@@ -172,6 +172,16 @@ function tick(state, now) {
       view.mesh.rotation.y = view.tiltY;
     }
 
+    // Cards can be dimmed by the interest filter. The paper is painted by the
+    // shared canvas, not by the button, so the fade has to be applied here.
+    if (view.dim !== view.dimTarget) {
+      view.dim = view.dimTarget;
+      const mat = view.mesh.material;
+      mat.opacity = view.dim ? 0.4 : 1;
+      mat.needsUpdate = true;
+      view.rendered = false;
+    }
+
     // --- visibility + layout ---
     if (!view.visible) continue;
     const el = view.el;
@@ -186,22 +196,39 @@ function tick(state, now) {
       continue;
     }
 
-    const needsRender =
-      animatingP || animatingT || !view.rendered || state.layoutDirty;
-    if (!needsRender) continue;
-
-    const aspect = rect.width / rect.height;
-    if (Math.abs(aspect - view.camera.aspect) > 0.01) {
-      fitCamera(view, aspect);
-    }
-
     const left = Math.round(rect.left);
     const b = Math.round(vh - rect.bottom);
-    renderer.setViewport(left, b, rect.width, rect.height);
-    renderer.setScissor(left, b, rect.width, rect.height);
+    const w = Math.round(rect.width);
+    const h = Math.round(rect.height);
+
+    // Cards move for reasons that never fire scroll/resize: the GSAP grid
+    // entrance, the `scale-[1.03]` interest hit, filter relayouts. Comparing
+    // the scissor box each frame keeps the paper glued to its card.
+    const moved =
+      view.rl !== left || view.rb !== b || view.rw !== w || view.rh !== h;
+
+    const needsRender =
+      animatingP ||
+      animatingT ||
+      !view.rendered ||
+      state.layoutDirty ||
+      moved;
+    if (!needsRender) continue;
+
+    const aspect = w / Math.max(h, 1);
+    if (Math.abs(aspect - view.camera.aspect) > 0.01) {
+      fitCamera(view.camera, aspect);
+    }
+
+    renderer.setViewport(left, b, w, h);
+    renderer.setScissor(left, b, w, h);
     renderer.setScissorTest(true);
     renderer.render(view.scene, view.camera);
     view.rendered = true;
+    view.rl = left;
+    view.rb = b;
+    view.rw = w;
+    view.rh = h;
     rendered = true;
   }
 
@@ -251,8 +278,9 @@ export function initPaperCards(animData) {
   try {
     core = makeCore(animData);
     return true;
-  } catch (e) {
+  } catch (error) {
     core = null;
+    console.error("Unable to initialize the event-card 3D renderer.", error);
     return false;
   }
 }
@@ -316,6 +344,8 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     lastFrame: -1,
     rendered: false,
     visible: true,
+    dim: false,
+    dimTarget: false,
     onProgress,
     onFail,
   };
@@ -369,6 +399,10 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
       if (disposed) return;
       view.targetTiltX = 0;
       view.targetTiltY = 0;
+    },
+    setDim(dimmed) {
+      if (disposed) return;
+      view.dimTarget = !!dimmed;
     },
     dispose() {
       if (disposed) return;

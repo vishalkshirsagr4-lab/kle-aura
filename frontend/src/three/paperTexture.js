@@ -285,6 +285,10 @@ export function getPaperMaterial(event, rule) {
     roughness: 0.92,
     metalness: 0,
     side: THREE.DoubleSide,
+    // Cards are dimmed to 40% by the interest filter. The paper is painted by
+    // the shared canvas, so the fade has to happen on the material itself.
+    transparent: true,
+    opacity: 1,
   });
 
   state.texture = texture;

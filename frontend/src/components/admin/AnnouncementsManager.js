@@ -132,7 +132,7 @@ function AnnouncementsManager({ onUnauthorized }) {
               Title
             </label>
             <input
-              className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/20"
+              className="field-control"
               id="title"
               name="title"
               maxLength={120}
@@ -147,7 +147,7 @@ function AnnouncementsManager({ onUnauthorized }) {
               Message
             </label>
             <textarea
-              className="w-full resize-y rounded-2xl border-2 border-border bg-field px-5 py-3 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/20"
+              className="field-control min-h-28 resize-y"
               id="message"
               name="message"
               rows="4"
@@ -164,7 +164,7 @@ function AnnouncementsManager({ onUnauthorized }) {
                 Type
               </label>
               <select
-                className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+                className="field-control"
                 id="category"
                 name="category"
                 value={form.category}
@@ -180,7 +180,7 @@ function AnnouncementsManager({ onUnauthorized }) {
                 Date (optional)
               </label>
               <input
-                className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none focus:border-accent"
+                className="field-control"
                 id="date"
                 name="date"
                 type="date"

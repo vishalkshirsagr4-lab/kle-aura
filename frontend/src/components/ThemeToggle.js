@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 
-const KEY = "aura-theme";
+const KEY = "aura-theme-v2";
 const read = () => {
   try {
-    return localStorage.getItem(KEY) || "dark";
+    return localStorage.getItem(KEY) || "light";
   } catch (e) {
-    return "dark";
+    return "light";
   }
 };
 
-// Dark (obsidian) by default; the choice is remembered on this device
+// Light mode is the default; the choice is remembered on this device.
 function ThemeToggle() {
   const [theme, setTheme] = useState(read);
 
@@ -27,7 +27,7 @@ function ThemeToggle() {
   return (
     <button
       type="button"
-      className="fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-[1000] grid size-12 place-items-center rounded-full border border-border bg-surface text-2xl text-foreground shadow-xl transition hover:rotate-12 hover:scale-110"
+      className="fixed right-4 top-[calc(4.5rem+env(safe-area-inset-top,0px))] z-[1000] grid size-11 place-items-center rounded-xl border border-border bg-surface text-lg text-foreground shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Light mode" : "Dark mode"}
       onClick={() => setTheme(dark ? "light" : "dark")}

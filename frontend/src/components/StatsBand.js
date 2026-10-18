@@ -45,26 +45,28 @@ function StatsBand() {
   }, []);
   return (
     <div
-      className="my-4 mb-10 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4"
+      className="my-6 mb-12 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
       ref={ref}
     >
       {STATS.map(({ Icon, to, label }, index) => {
         const tones = [
-          "from-obsidian to-primary",
-          "from-red-600 to-cyan",
-          "from-amber-500 to-amber-600",
-          "from-teal-700 to-cyan",
+          "bg-indigo-50 text-indigo-700",
+          "bg-violet-50 text-violet-700",
+          "bg-amber-50 text-amber-700",
+          "bg-cyan-50 text-cyan-800",
         ];
         return (
           <div
             key={label}
-            className={`relative flex flex-col items-center gap-1 overflow-hidden rounded-2xl bg-gradient-to-br p-5 text-white shadow-xl shadow-black/20 ${tones[index]}`}
+            className="flex min-h-32 flex-col items-start justify-center gap-1 rounded-2xl border border-border bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5"
           >
-            <Icon className="text-2xl opacity-90" />
-            <b className="text-4xl font-extrabold leading-none">
+            <span className={`mb-2 grid size-9 place-items-center rounded-xl ${tones[index]}`}>
+              <Icon className="text-lg" />
+            </span>
+            <b className="text-3xl font-bold leading-none tracking-tight text-foreground">
               <Count to={to} run={run} />
             </b>
-            <span className="text-center text-sm font-semibold opacity-90">
+            <span className="text-left text-xs font-medium leading-snug text-muted sm:text-sm">
               {label}
             </span>
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Presentation as FaChalkboardUser,
   Images as FaImages,
@@ -14,6 +15,8 @@ import { SEMINARS, PHOTOS } from "../data/gallery";
 // Seconds between automatic slides
 const SLIDE_SECONDS = 10;
 
+const overlay = (node) => createPortal(node, document.body);
+
 function CollegeGallery() {
   // one lightbox for both lists: { list, index }
   const [box, setBox] = useState(null);
@@ -26,7 +29,7 @@ function CollegeGallery() {
   const step = () => {
     const el = track.current;
     if (!el || !el.firstElementChild) return 0;
-    const gap = parseFloat(getComputedStyle(el).columnGap) || 16;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 20;
     return el.firstElementChild.offsetWidth + gap;
   };
   const slide = useCallback((dir) => {
@@ -86,12 +89,12 @@ function CollegeGallery() {
   return (
     <section className="mb-14">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
-        <h2 className="flex items-center gap-2 border-l-[6px] border-accent pl-4 text-2xl font-extrabold sm:text-3xl">
-          <FaChalkboardUser className="text-accent" /> EXPERT SEMINARS
+        <h2 className="section-heading">
+          <FaChalkboardUser className="text-accent" /> Expert seminars
         </h2>
         <p className="text-sm text-muted">
           Industry professionals from Bengaluru's top companies teach our
-          students every semester
+          students every semester. Swipe to explore all seminars.
         </p>
       </div>
 
@@ -114,10 +117,12 @@ function CollegeGallery() {
           className="flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 py-2 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
           ref={track}
           onScroll={onScroll}
+          role="region"
+          aria-label="Expert seminars. Swipe or use the arrows to browse."
         >
           {SEMINARS.map((s, i) => (
             <article
-              className="tilt flex basis-[min(300px,82%)] snap-start flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/10 backdrop-blur [transform:perspective(900px)_rotateX(var(--rx,0deg))_rotateY(var(--ry,0deg))] [transform-style:preserve-3d]"
+              className="tilt flex basis-[min(300px,82%)] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-md shadow-black/5 [transform:perspective(900px)_rotateX(var(--rx,0deg))_rotateY(var(--ry,0deg))] [transform-style:preserve-3d]"
               key={s.id}
             >
               <button
@@ -175,8 +180,8 @@ function CollegeGallery() {
       </div>
 
       <div className="mb-6 mt-12 flex flex-wrap items-baseline justify-between gap-4">
-        <h2 className="flex items-center gap-2 border-l-[6px] border-accent pl-4 text-2xl font-extrabold sm:text-3xl">
-          <FaImages className="text-accent" /> CAMPUS MOMENTS
+        <h2 className="section-heading">
+          <FaImages className="text-accent" /> Campus moments
         </h2>
         <p className="text-sm text-muted">
           Our students, our campus and our achievements
@@ -205,7 +210,7 @@ function CollegeGallery() {
         ))}
       </div>
 
-      {cur && (
+      {cur && overlay(
         <div
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-obsidian/95 p-4"
           role="dialog"

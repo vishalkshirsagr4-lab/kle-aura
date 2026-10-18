@@ -3,11 +3,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#4f7cff",
-        accent: "#8b5cf6",
-        cyan: "#36e4ff",
-        navy: "#111827",
-        obsidian: "#0b0d12",
+        primary: "#4f46e5",
+        accent: "#7c3aed",
+        cyan: "#0891b2",
+        navy: "#172554",
+        obsidian: "#101828",
         bg: "var(--bg)",
         surface: "var(--surface)",
         border: "var(--border)",

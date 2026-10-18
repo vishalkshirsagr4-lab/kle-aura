@@ -43,11 +43,11 @@ function AdminLogin({ onLogin }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-5">
-      <div className="w-full max-w-[430px] rounded-2xl border border-border bg-surface p-7 text-center shadow-[0_24px_60px_var(--shadow)] backdrop-blur-lg sm:p-10">
-        <div className="mx-auto mb-4 flex size-[72px] items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-accent text-3xl text-white shadow-xl shadow-primary/30">
+      <div className="w-full max-w-[440px] rounded-3xl border border-border bg-surface p-6 text-center shadow-xl shadow-slate-900/5 sm:p-10">
+        <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-3xl text-primary">
           <FaUserShield />
         </div>
-        <h1 className="text-3xl font-bold">Admin portal</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Admin portal</h1>
         <p className="my-1 text-muted">AI-AURA · Sign in to manage the event</p>
 
         <form
@@ -56,13 +56,13 @@ function AdminLogin({ onLogin }) {
           className="mt-6 grid gap-5 text-left"
         >
           <div className="flex flex-col gap-2">
-            <label htmlFor="username">
-              <FaUser /> Username
+            <label className="flex items-center gap-2 text-sm font-semibold text-foreground" htmlFor="username">
+              <FaUser className="text-primary" /> Username
             </label>
             <input
               id="username"
               name="username"
-              className="w-full rounded-full border-2 border-border bg-field px-5 py-3 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/20"
+              className="field-control"
               autoComplete="username"
               placeholder="Admin username"
               value={form.username}
@@ -71,14 +71,14 @@ function AdminLogin({ onLogin }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="password">
-              <FaLock /> Password
+            <label className="flex items-center gap-2 text-sm font-semibold text-foreground" htmlFor="password">
+              <FaLock className="text-primary" /> Password
             </label>
             <div className="relative">
               <input
                 id="password"
                 name="password"
-                className="w-full rounded-full border-2 border-border bg-field px-5 py-3 pr-12 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/20"
+                className="field-control pr-12"
                 type={show ? "text" : "password"}
                 autoComplete="current-password"
                 placeholder="Admin password"
@@ -108,7 +108,7 @@ function AdminLogin({ onLogin }) {
 
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-br from-primary to-accent px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-primary/30 transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-bold text-white shadow-md shadow-primary/20 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             <FaArrowRightToBracket />
             {loading ? "Signing in..." : "Sign in"}

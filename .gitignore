@@ -13,7 +13,6 @@ __pycache__/
 
 # Build output
 dist/
-build/
 .next/
 out/
 coverage/

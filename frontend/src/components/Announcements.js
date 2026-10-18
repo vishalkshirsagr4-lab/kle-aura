@@ -17,8 +17,8 @@ function Announcements({ items }) {
   return (
     <section className="mb-12">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
-        <h2 className="flex items-center gap-2 border-l-[6px] border-accent pl-4 text-2xl font-extrabold sm:text-3xl">
-          <FaBullhorn className="text-accent" /> ANNOUNCEMENTS
+        <h2 className="section-heading">
+          <FaBullhorn className="text-accent" /> Announcements
         </h2>
         <p className="text-sm text-muted">Latest updates from the organisers</p>
       </div>

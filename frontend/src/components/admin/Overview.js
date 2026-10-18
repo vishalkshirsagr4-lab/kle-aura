@@ -9,21 +9,21 @@ import {
 
 function StatCard({ Icon, value, label, hue }) {
   const color = {
-    h1: "bg-gradient-to-br from-primary to-accent",
-    h2: "bg-gradient-to-br from-fuchsia-700 to-pink-400",
-    h3: "bg-gradient-to-br from-blue-700 to-sky-400",
-    h4: "bg-gradient-to-br from-emerald-700 to-emerald-300",
+    h1: "bg-indigo-50 text-indigo-700",
+    h2: "bg-violet-50 text-violet-700",
+    h3: "bg-sky-50 text-sky-700",
+    h4: "bg-emerald-50 text-emerald-700",
   }[hue];
   return (
     <div
-      className={`flex items-center gap-4 rounded-2xl p-5 text-white shadow-lg shadow-primary/20 ${color}`}
+      className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 text-foreground shadow-sm"
     >
-      <div className="flex size-13 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-2xl">
+      <div className={`flex size-13 shrink-0 items-center justify-center rounded-2xl text-2xl ${color}`}>
         <Icon />
       </div>
       <div>
         <b className="block text-3xl font-extrabold leading-tight">{value}</b>
-        <span className="text-sm font-semibold opacity-90">{label}</span>
+        <span className="text-sm font-medium text-muted">{label}</span>
       </div>
     </div>
   );
