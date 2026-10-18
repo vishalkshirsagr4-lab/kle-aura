@@ -15,7 +15,7 @@ const CAN_HOVER =
   typeof window.matchMedia === "function" &&
   window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* CSS Poster Fallback when WebGL is unavailable or still loading */
+/* Centered CSS Poster Fallback matching exact 1:1.4 aspect ratio */
 function PosterFallback({ event, rule, ink }) {
   const Icon = event?.icon;
   const numStr = `#${String(event?.id || 0).padStart(2, "0")}`;
@@ -24,57 +24,54 @@ function PosterFallback({ event, rule, ink }) {
   return (
     <div
       aria-hidden="true"
-      className="absolute inset-0 flex flex-col justify-between overflow-hidden rounded-t-2xl bg-[#f9f8f4] p-3 text-slate-800"
+      className="relative mx-auto my-auto flex h-[92%] aspect-[5/7] flex-col justify-between overflow-hidden rounded-xl bg-[#f9f8f4] p-3 text-slate-800 shadow-md border border-slate-300/60 dark:border-slate-700/60"
     >
       {/* Subtle paper grid lines */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0 opacity-30"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg,transparent 0 32px,rgba(148,163,184,.2) 32px 33px),repeating-linear-gradient(90deg,transparent 0 32px,rgba(148,163,184,.2) 32px 33px)",
+            "repeating-linear-gradient(0deg,transparent 0 28px,rgba(148,163,184,.2) 28px 29px),repeating-linear-gradient(90deg,transparent 0 28px,rgba(148,163,184,.2) 28px 29px)",
         }}
       />
-      {/* Framed border */}
+      {/* Framed inner border */}
       <div
-        className="pointer-events-none absolute inset-2 rounded-xl border"
+        className="pointer-events-none absolute inset-1.5 rounded-lg border"
         style={{ borderColor: `${ink}33` }}
       />
 
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between">
         <span
-          className="rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white shadow-sm"
+          className="rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white shadow-xs"
           style={{ background: ink }}
         >
           {groupLabel}
         </span>
-        <span className="text-sm font-black tracking-tight" style={{ color: ink }}>
+        <span className="text-xs font-black tracking-tight" style={{ color: ink }}>
           {numStr}
         </span>
       </div>
 
       {/* Center Medallion */}
-      <div className="relative z-10 flex flex-col items-center justify-center my-auto">
+      <div className="relative z-10 my-auto flex flex-col items-center justify-center">
         <div
-          className="grid size-16 place-items-center rounded-full border-2 border-dashed shadow-sm transition-transform duration-300 group-hover:scale-105 sm:size-20"
+          className="grid size-14 place-items-center rounded-full border-2 border-dashed shadow-xs sm:size-16"
           style={{
             borderColor: `${ink}88`,
             background: `${ink}12`,
             color: ink,
           }}
         >
-          {Icon && <Icon className="size-8 sm:size-10" aria-hidden="true" />}
+          {Icon && <Icon className="size-7 sm:size-8" aria-hidden="true" />}
         </div>
-        <p className="mt-2.5 max-w-[90%] text-center text-xs font-bold leading-tight sm:text-sm line-clamp-2">
+        <p className="mt-2 max-w-[92%] text-center text-[11px] font-extrabold leading-tight text-slate-900 sm:text-xs line-clamp-2">
           {event?.name}
         </p>
-        <span className="mt-0.5 text-[10px] font-semibold opacity-75" style={{ color: ink }}>
-          {rule?.type}
-        </span>
       </div>
 
       {/* Footer stamp */}
-      <div className="relative z-10 flex items-center justify-between text-[9px] font-bold text-slate-500">
+      <div className="relative z-10 flex items-center justify-between text-[8px] font-bold text-slate-500">
         <span>AI-AURA 2K26</span>
         <span>KLE BCA &amp; BBA</span>
       </div>
@@ -190,10 +187,10 @@ export default function EventCard({
   return (
     <article
       data-event-card="true"
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-surface transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
         hit
-          ? "border-accent ring-4 ring-accent/30 shadow-lg shadow-accent/20"
-          : "border-border shadow-sm hover:border-accent/40"
+          ? "border-accent ring-3 ring-accent/30 shadow-md shadow-accent/20"
+          : "border-border shadow-xs hover:border-accent/40"
       } ${dimmed ? "opacity-35 saturate-50" : "opacity-100"}`}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
@@ -202,77 +199,74 @@ export default function EventCard({
       onPointerCancel={onPointerUp}
       onPointerMove={onPointerMove}
     >
-      {/* ================= POSTER AREA ================= */}
-      <div className="relative aspect-[5/6] w-full overflow-hidden rounded-t-2xl bg-paper/40 border-b border-border/60">
+      {/* ================= COMPACT POSTER AREA ================= */}
+      <div className="relative h-48 sm:h-56 md:h-60 w-full overflow-hidden rounded-t-2xl bg-gradient-to-b from-slate-100/90 to-slate-200/50 dark:from-slate-800/80 dark:to-slate-900/60 border-b border-border/60 flex items-center justify-center">
         {/* Poster 3D Mesh anchor element */}
         <div
           ref={posterRef}
-          className="relative size-full touch-manipulation select-none"
+          className="relative size-full touch-manipulation select-none flex items-center justify-center"
           role="img"
           aria-label={`${event?.name} official event poster sheet`}
         >
           {/* Fallback layer rendered when 3D is initializing or unsupported */}
           <div
-            className={`absolute inset-0 transition-opacity duration-300 ${
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
               is3dActive ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
             <PosterFallback event={event} rule={rule} ink={ink} />
           </div>
 
-          {/* Interactive tactile badge on poster */}
-          <div className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 rounded-full border border-black/10 bg-white/85 px-2.5 py-1 text-[10px] font-bold text-slate-700 shadow-sm backdrop-blur-sm dark:bg-slate-900/85 dark:text-slate-200">
-            <Sparkles className="size-3 text-accent" />
+          {/* Integrated small 3D Paper badge inside the poster viewport */}
+          <div className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1 rounded-full bg-slate-900/70 px-2 py-0.5 text-[9px] font-bold text-white shadow-xs backdrop-blur-xs">
+            <Sparkles className="size-2.5 text-cyan-300" />
             <span>3D Paper</span>
           </div>
         </div>
       </div>
 
-      {/* ================= CARD BODY ================= */}
-      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+      {/* ================= STREAMLINED CARD BODY ================= */}
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4 md:p-5">
         <div>
-          {/* Category Badge & Proposed Tag */}
-          <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-            <span
-              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-xs"
-              style={{ background: ink }}
-            >
-              {rule?.group || event?.category}
-            </span>
-            {rule?.proposed && (
-              <span className="inline-flex items-center rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-extrabold text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                PROPOSED
+          {/* Category Badge & Event # */}
+          <div className="mb-2 flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className="truncate rounded-md px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white shadow-xs"
+                style={{ background: ink }}
+              >
+                {rule?.group || event?.category}
               </span>
-            )}
-            <span className="ml-auto text-xs font-black text-muted">
+              {rule?.proposed && (
+                <span className="shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                  PROPOSED
+                </span>
+              )}
+            </div>
+            <span className="shrink-0 text-xs font-black text-muted">
               #{String(event?.id || 0).padStart(2, "0")}
             </span>
           </div>
 
           {/* Event Title */}
-          <h3 className="text-base font-extrabold leading-snug tracking-tight text-foreground sm:text-lg line-clamp-2">
+          <h3 className="text-sm font-extrabold leading-snug tracking-tight text-foreground sm:text-base md:text-lg line-clamp-1 sm:line-clamp-2">
             {event?.name}
           </h3>
 
-          {/* Type / Subtitle */}
-          <p className="mt-1 text-xs font-semibold text-accent line-clamp-1">
-            {rule?.type || event?.category}
-          </p>
-
           {/* Description / Judging focus */}
           {rule?.judging && (
-            <p className="mt-2 text-xs leading-relaxed text-muted line-clamp-2">
-              <strong className="text-foreground/80">Focus:</strong> {rule.judging}
+            <p className="mt-1 text-xs text-muted line-clamp-1 sm:line-clamp-2">
+              <span className="font-semibold text-foreground/80">Focus:</span> {rule.judging}
             </p>
           )}
 
           {/* Chips specs */}
           {rule?.chips && rule.chips.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {rule.chips.map((chip, idx) => (
+            <div className="mt-2.5 flex flex-wrap gap-1">
+              {rule.chips.slice(0, 3).map((chip, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1 rounded-md border border-border bg-slate-100/70 dark:bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/85"
+                  className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-slate-100/70 dark:bg-slate-800/60 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/80"
                 >
                   {idx === 0 ? (
                     <Users className="size-2.5 text-muted" />
@@ -289,23 +283,23 @@ export default function EventCard({
         </div>
 
         {/* ================= ACTIONS ================= */}
-        <div className="mt-5 grid grid-cols-2 gap-2 border-t border-border/70 pt-3.5">
+        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
           <button
             type="button"
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 py-2 text-xs font-bold text-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 py-1.5 text-xs font-bold text-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             onClick={(e) => {
               e.stopPropagation();
               onViewRules?.(event.id);
             }}
             aria-label={`View rules for ${event.name}`}
           >
-            <FileText className="size-3.5" />
-            <span>View Rules</span>
+            <FileText className="size-3.5 shrink-0" />
+            <span>Rules</span>
           </button>
 
           <button
             type="button"
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-primary px-2.5 py-2 text-xs font-bold text-white shadow-sm shadow-accent/20 transition hover:opacity-95 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-primary px-2.5 py-1.5 text-xs font-bold text-white shadow-xs shadow-accent/20 transition hover:opacity-95 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             onClick={(e) => {
               e.stopPropagation();
               onRegister?.(event.name);
@@ -313,7 +307,7 @@ export default function EventCard({
             aria-label={`Register for ${event.name}`}
           >
             <span>Register</span>
-            <ArrowRight className="size-3.5" />
+            <ArrowRight className="size-3.5 shrink-0" />
           </button>
         </div>
       </div>

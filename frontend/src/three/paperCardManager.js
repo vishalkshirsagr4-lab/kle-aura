@@ -3,13 +3,16 @@ import * as THREE from "three";
 /* Shared paper-crumple renderer for all event cards.
    Uses the Three.js multiple-element scissor pattern:
    One shared WebGLRenderer and one fixed full-window canvas.
-   Each card view is rendered only into its poster area viewport.
-   Idle views cost zero GPU time. */
+   Each card's poster is rendered into its exact viewport rectangle.
+   The poster mesh stands upright, directly facing the camera with zero
+   perspective distortion at rest, eliminating blank spaces and tabletop skew. */
 
 const CARD_FOV = 28;
-const PITCH = (22 * Math.PI) / 180; // 22-degree gentle elevation for clear poster view
-const REST_P = 0.00; // Flat, undistorted rest state
-const FILL = 0.94;
+const FILL = 0.92;
+const SHEET_W = 1.0;
+const SHEET_H = 1.414;
+const SHEET_ASPECT = SHEET_W / SHEET_H; // ~0.707 (standard 1 : 1.414 paper ratio)
+const REST_P = 0.00; // Perfectly flat, undistorted rest state
 
 let core = null;
 
@@ -92,16 +95,22 @@ function failAll(state) {
   });
 }
 
+/**
+ * Positions the camera directly in front of the upright poster.
+ * Centers the poster with tight, consistent margins (no large empty space above/below).
+ */
 function fitCamera(cam, aspect) {
   cam.aspect = aspect;
-  // projected extent of the sheet at the target plane
-  const projW = 1.08;
-  const projH = 1.35 * Math.cos(PITCH);
+
+  // Fit the poster within the available container aspect ratio
   const visH =
-    aspect >= projW / projH ? projH / FILL : projW / projH / FILL / aspect;
+    aspect >= SHEET_ASPECT
+      ? SHEET_H / FILL
+      : (SHEET_W / FILL) / aspect;
+
   const d = visH / (2 * Math.tan((CARD_FOV / 2) * (Math.PI / 180)));
-  cam.position.set(0, 0.05 + d * Math.sin(PITCH), d * Math.cos(PITCH));
-  cam.lookAt(0, 0.05, 0);
+  cam.position.set(0, 0, d);
+  cam.lookAt(0, 0, 0);
   cam.updateProjectionMatrix();
 }
 
@@ -171,8 +180,11 @@ function tick(state, now) {
       if (view.onProgress) view.onProgress(view.p);
     }
     if (animatingT) {
-      view.mesh.rotation.x = view.tiltX;
+      // Base rotation is Math.PI / 2 (standing upright facing camera).
+      // Gentle, subtle 3D tilt follows pointer during hover/touch
+      view.mesh.rotation.x = Math.PI / 2 - view.tiltX;
       view.mesh.rotation.y = view.tiltY;
+      view.mesh.rotation.z = -view.tiltY * 0.35;
     }
 
     if (view.dim !== view.dimTarget) {
@@ -316,23 +328,25 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  // Rotate mesh by Math.PI / 2 so that it stands vertically facing the camera
+  mesh.rotation.x = Math.PI / 2;
 
   const scene = new THREE.Scene();
-  // Warm, balanced paper ambiance
-  scene.add(new THREE.AmbientLight(0xfff8ee, 0.72));
+  // Warm, balanced studio paper ambiance
+  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
 
-  // Key directional light creating soft shadows on paper folds
-  const dir = new THREE.DirectionalLight(0xffffff, 0.82);
-  dir.position.set(1.5, 3.2, 2.2);
+  // Key directional light in front of the poster creating crisp paper highlights
+  const dir = new THREE.DirectionalLight(0xfff9ee, 0.70);
+  dir.position.set(1.5, 2.5, 3.5);
   scene.add(dir);
 
-  // Soft fill light from bottom-left for realistic bounce
-  const fill = new THREE.DirectionalLight(0x90b0e0, 0.22);
-  fill.position.set(-2, -1, 1);
+  // Soft cool bounce fill
+  const fill = new THREE.DirectionalLight(0xa0c0e0, 0.20);
+  fill.position.set(-2, -1.5, 2);
   scene.add(fill);
 
   const camera = new THREE.PerspectiveCamera(CARD_FOV, 1, 0.1, 20);
-  fitCamera(camera, 5 / 7);
+  fitCamera(camera, 1);
 
   const view = {
     el,
@@ -385,15 +399,15 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     setInteraction({ hover = false, pressed = false, focused = false } = {}) {
       if (disposed) return;
       if (pressed) {
-        // Slight natural creasing on click/press
-        view.targetP = 0.15;
+        // Subtle crease on press
+        view.targetP = 0.10;
         view.rate = 12;
       } else if (hover) {
-        // Subtle paper surface wrinkle (keeps all text and graphics 100% readable)
-        view.targetP = 0.08;
-        view.rate = 7.5;
-      } else if (focused) {
+        // Gentle paper wrinkle on hover (preserves full readability)
         view.targetP = 0.05;
+        view.rate = 7;
+      } else if (focused) {
+        view.targetP = 0.04;
         view.rate = 7;
       } else {
         // Return smoothly to flat sheet
@@ -403,9 +417,9 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     },
     setTilt(nx, ny) {
       if (disposed) return;
-      // Controlled tilt angle in range [-0.12, 0.12] radians (~7 degrees)
-      view.targetTiltY = nx * 0.22;
-      view.targetTiltX = ny * 0.16;
+      // Controlled tilt angle in range [-0.10, 0.10] radians (~6 degrees)
+      view.targetTiltY = nx * 0.14;
+      view.targetTiltX = ny * 0.10;
     },
     resetTilt() {
       if (disposed) return;
