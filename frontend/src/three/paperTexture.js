@@ -1,34 +1,45 @@
 import * as THREE from "three";
 
-/* Per-event paper poster designs drawn to a canvas.
-   One texture + material is cached per event id and shared by the mesh.
-   Correct UV mapping: flip vertically (repeat 1, -1 around center 0.5, 0.5)
-   without rotation so that text and icons read correctly left-to-right and right-side up. */
+/* High-DPI Per-event paper poster designs drawn to a canvas (1024 x 1448 px).
+   Crisp vector typography, rich colors, authentic paper cardstock texture.
+   Mipmapping and anisotropic filtering ensure pin-sharp clarity on all displays.
+   UV orientation: repeat(1, -1) around center(0.5, 0.5) with no rotation. */
 
-const TEX_W = 512;
-const TEX_H = 716; // 1 : 1.4 ratio, matches the flat Houdini VAT paper sheet
+const TEX_W = 1024;
+const TEX_H = 1448; // Exact 1 : 1.414 paper aspect ratio (ISO 216 proportion)
 const INK = "#0f172a";
-const PAPER = "#f9f8f4";
-const CELL = 36;
+const PAPER = "#faf9f6";
+const CELL = 64;
 
 const GROUP_INK = {
   Stage: "#6d28d9",
   "Art & Craft": "#7c3aed",
   Writing: "#1d4ed8",
-  "Quiz & Logic": "#3b82f6",
+  "Quiz & Logic": "#2563eb",
   "AI & Digital": "#0891b2",
 };
 export { GROUP_INK };
 
 const cache = new Map(); // id -> { canvas, ctx, texture, material, design }
 let fontsHooked = false;
+let maxAnisotropy = 8;
+
+export function setTextureAnisotropy(val) {
+  maxAnisotropy = Math.max(1, Math.min(val || 8, 16));
+  for (const state of cache.values()) {
+    if (state.texture) {
+      state.texture.anisotropy = maxAnisotropy;
+      state.texture.needsUpdate = true;
+    }
+  }
+}
 
 function hexToRgba(hex, a) {
   const n = parseInt(hex.replace("#", ""), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
 
-/* Draw a Lucide icon node onto the canvas */
+/* Draw a Lucide icon node onto the high-DPI canvas with crisp lines */
 function drawIconNode(ctx, iconNode, x, y, size, color) {
   if (!iconNode || !Array.isArray(iconNode)) return;
   const s = size / 24;
@@ -37,7 +48,7 @@ function drawIconNode(ctx, iconNode, x, y, size, color) {
   ctx.scale(s, s);
   ctx.strokeStyle = color;
   ctx.fillStyle = "none";
-  ctx.lineWidth = 2.2;
+  ctx.lineWidth = 2.6;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   for (const [tag, attrs] of iconNode) {
@@ -73,10 +84,10 @@ function drawIconNode(ctx, iconNode, x, y, size, color) {
 
 function drawWrapped(ctx, text, x, y, maxWidth, baseSize, font) {
   let size = baseSize;
-  ctx.font = `800 ${size}px ${font}`;
-  while (ctx.measureText(text).width > maxWidth && size > 32) {
-    size -= 2;
-    ctx.font = `800 ${size}px ${font}`;
+  ctx.font = `900 ${size}px ${font}`;
+  while (ctx.measureText(text).width > maxWidth && size > 42) {
+    size -= 3;
+    ctx.font = `900 ${size}px ${font}`;
   }
   const words = text.split(" ");
   if (ctx.measureText(text).width <= maxWidth || words.length < 2) {
@@ -90,25 +101,25 @@ function drawWrapped(ctx, text, x, y, maxWidth, baseSize, font) {
     const w = Math.max(ctx.measureText(line1).width, ctx.measureText(line2).width);
     if (!best || w < best.w) best = { line1, line2, w };
   }
-  size = Math.min(size, 46);
-  ctx.font = `800 ${size}px ${font}`;
-  ctx.fillText(best.line1, x, y - size * 0.58);
-  ctx.fillText(best.line2, x, y + size * 0.58);
+  size = Math.min(size, 62);
+  ctx.font = `900 ${size}px ${font}`;
+  ctx.fillText(best.line1, x, y - size * 0.62);
+  ctx.fillText(best.line2, x, y + size * 0.62);
 }
 
 function paintStatic(state) {
   const { ctx, design } = state;
   const { number, title, iconNode, group, type, chips, proposed } = design;
   const ink = GROUP_INK[group] || "#4f46e5";
-  const sans = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  const sans = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
-  // Base paper color
+  // Base crisp ivory-white paper
   ctx.fillStyle = PAPER;
   ctx.fillRect(0, 0, TEX_W, TEX_H);
 
-  // Subtle clean paper grid
-  ctx.strokeStyle = "rgba(148, 163, 184, 0.15)";
-  ctx.lineWidth = 1;
+  // Subtle clean paper cardstock grid
+  ctx.strokeStyle = "rgba(148, 163, 184, 0.10)";
+  ctx.lineWidth = 1.0;
   ctx.beginPath();
   for (let x = CELL; x < TEX_W; x += CELL) {
     ctx.moveTo(x, 0);
@@ -120,134 +131,157 @@ function paintStatic(state) {
   }
   ctx.stroke();
 
-  // Outer framed border
-  ctx.strokeStyle = "rgba(15, 23, 42, 0.12)";
-  ctx.lineWidth = 3;
-  ctx.strokeRect(14, 14, TEX_W - 28, TEX_H - 28);
+  // Subtle paper grain noise
+  ctx.fillStyle = "rgba(0, 0, 0, 0.012)";
+  for (let i = 0; i < 400; i++) {
+    const rx = (i * 97) % TEX_W;
+    const ry = (i * 137) % TEX_H;
+    ctx.fillRect(rx, ry, 2, 2);
+  }
 
-  ctx.strokeStyle = hexToRgba(ink, 0.4);
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(20, 20, TEX_W - 40, TEX_H - 40);
+  // Double framed outer borders
+  ctx.strokeStyle = "rgba(15, 23, 42, 0.16)";
+  ctx.lineWidth = 3.5;
+  ctx.strokeRect(28, 28, TEX_W - 56, TEX_H - 56);
+
+  ctx.strokeStyle = hexToRgba(ink, 0.5);
+  ctx.lineWidth = 2.0;
+  ctx.strokeRect(38, 38, TEX_W - 76, TEX_H - 76);
+
+  // Top corner registration marks
+  const mLen = 14;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  // top-left
+  ctx.moveTo(48, 48 + mLen); ctx.lineTo(48, 48); ctx.lineTo(48 + mLen, 48);
+  // top-right
+  ctx.moveTo(TEX_W - 48 - mLen, 48); ctx.lineTo(TEX_W - 48, 48); ctx.lineTo(TEX_W - 48, 48 + mLen);
+  // bottom-left
+  ctx.moveTo(48, TEX_H - 48 - mLen); ctx.lineTo(48, TEX_H - 48); ctx.lineTo(48 + mLen, 48);
+  // bottom-right
+  ctx.moveTo(TEX_W - 48 - mLen, TEX_H - 48); ctx.lineTo(TEX_W - 48, TEX_H - 48); ctx.lineTo(TEX_W - 48, TEX_H - 48 - mLen);
+  ctx.stroke();
 
   // Top header strip: Category Badge on left, Event # on right
   const groupLabel = (group || "").toUpperCase();
-  ctx.font = `700 18px ${sans}`;
-  const labelW = ctx.measureText(groupLabel).width + 24;
+  ctx.font = `800 28px ${sans}`;
+  const labelW = ctx.measureText(groupLabel).width + 36;
 
   ctx.fillStyle = ink;
   ctx.beginPath();
   ctx.roundRect
-    ? ctx.roundRect(32, 34, labelW, 30, 8)
-    : ctx.rect(32, 34, labelW, 30);
+    ? ctx.roundRect(58, 58, labelW, 50, 12)
+    : ctx.rect(58, 58, labelW, 50);
   ctx.fill();
 
   ctx.fillStyle = "#ffffff";
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-  ctx.fillText(groupLabel, 44, 49);
+  ctx.fillText(groupLabel, 76, 83);
 
   // Event Number (top right)
   const numStr = `#${String(number).padStart(2, "0")}`;
-  ctx.font = `900 28px ${sans}`;
+  ctx.font = `900 48px ${sans}`;
   ctx.textAlign = "right";
   ctx.fillStyle = ink;
-  ctx.fillText(numStr, TEX_W - 34, 49);
+  ctx.fillText(numStr, TEX_W - 58, 83);
 
-  // Proposed stamp
+  // Proposed stamp if applicable
   if (proposed) {
-    ctx.font = `800 14px ${sans}`;
-    const pw = ctx.measureText("PROPOSED").width + 18;
+    ctx.font = `800 22px ${sans}`;
+    const pw = ctx.measureText("PROPOSED").width + 26;
     ctx.fillStyle = "#f59e0b";
     ctx.beginPath();
     ctx.roundRect
-      ? ctx.roundRect(TEX_W - 34 - pw, 74, pw, 24, 6)
-      : ctx.rect(TEX_W - 34 - pw, 74, pw, 24);
+      ? ctx.roundRect(TEX_W - 58 - pw, 128, pw, 38, 10)
+      : ctx.rect(TEX_W - 58 - pw, 128, pw, 38);
     ctx.fill();
     ctx.fillStyle = "#78350f";
     ctx.textAlign = "center";
-    ctx.fillText("PROPOSED", TEX_W - 34 - pw / 2, 86);
+    ctx.fillText("PROPOSED", TEX_W - 58 - pw / 2, 147);
   }
 
   // Large centered icon medallion
   const iconCx = TEX_W / 2;
-  const iconCy = 230;
-  const radius = 86;
+  const iconCy = 410;
+  const radius = 152;
 
-  // Medallion glow
-  const medGrad = ctx.createRadialGradient(iconCx, iconCy, 20, iconCx, iconCy, radius);
-  medGrad.addColorStop(0, hexToRgba(ink, 0.16));
+  // Medallion soft glow
+  const medGrad = ctx.createRadialGradient(iconCx, iconCy, 30, iconCx, iconCy, radius);
+  medGrad.addColorStop(0, hexToRgba(ink, 0.18));
   medGrad.addColorStop(1, hexToRgba(ink, 0.04));
   ctx.fillStyle = medGrad;
   ctx.beginPath();
   ctx.arc(iconCx, iconCy, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  // Medallion ring
-  ctx.strokeStyle = hexToRgba(ink, 0.6);
-  ctx.lineWidth = 2.5;
-  ctx.setLineDash([8, 6]);
+  // Medallion dashed ring
+  ctx.strokeStyle = hexToRgba(ink, 0.75);
+  ctx.lineWidth = 4;
+  ctx.setLineDash([14, 10]);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Draw the Lucide icon inside medallion
-  drawIconNode(ctx, iconNode, iconCx - 54, iconCy - 54, 108, ink);
+  // Draw the Lucide icon in high resolution
+  drawIconNode(ctx, iconNode, iconCx - 96, iconCy - 96, 192, ink);
 
-  // Event title (prominent and readable)
+  // Event title (prominent, bold, 100% crisp)
   ctx.fillStyle = INK;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  drawWrapped(ctx, title, TEX_W / 2, 400, TEX_W - 70, 42, sans);
+  drawWrapped(ctx, title, TEX_W / 2, 720, TEX_W - 120, 68, sans);
 
   // Type subtitle
   ctx.fillStyle = hexToRgba(ink, 0.95);
-  ctx.font = `700 20px ${sans}`;
+  ctx.font = `700 32px ${sans}`;
   ctx.textAlign = "center";
-  ctx.fillText(type || "", TEX_W / 2, 490);
+  ctx.fillText(type || "", TEX_W / 2, 870);
 
-  // Chips pill (specs)
+  // Specs pill
   if (chips && chips.length) {
-    const text = chips.slice(0, 3).join("  •  ");
-    ctx.font = `600 16px ${sans}`;
-    const textW = Math.min(ctx.measureText(text).width + 32, TEX_W - 80);
+    const text = chips.slice(0, 3).join("   •   ");
+    ctx.font = `700 26px ${sans}`;
+    const textW = Math.min(ctx.measureText(text).width + 56, TEX_W - 120);
     ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "rgba(15, 23, 42, 0.16)";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.18)";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.roundRect
-      ? ctx.roundRect(TEX_W / 2 - textW / 2, 526, textW, 34, 17)
-      : ctx.rect(TEX_W / 2 - textW / 2, 526, textW, 34);
+      ? ctx.roundRect(TEX_W / 2 - textW / 2, 930, textW, 58, 29)
+      : ctx.rect(TEX_W / 2 - textW / 2, 930, textW, 58);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#334155";
     ctx.textBaseline = "middle";
-    ctx.fillText(text, TEX_W / 2, 543);
+    ctx.fillText(text, TEX_W / 2, 959);
   }
 
   // Footer bar: Festival info
-  ctx.strokeStyle = "rgba(15, 23, 42, 0.12)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(15, 23, 42, 0.14)";
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(34, TEX_H - 56);
-  ctx.lineTo(TEX_W - 34, TEX_H - 56);
+  ctx.moveTo(58, TEX_H - 110);
+  ctx.lineTo(TEX_W - 58, TEX_H - 110);
   ctx.stroke();
 
   ctx.fillStyle = "#64748b";
-  ctx.font = `700 15px ${sans}`;
+  ctx.font = `800 26px ${sans}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText("AI-AURA 2K26", 36, TEX_H - 36);
+  ctx.fillText("AI-AURA 2K26", 60, TEX_H - 70);
 
   ctx.textAlign = "right";
-  ctx.fillText("KLE BCA & BBA", TEX_W - 36, TEX_H - 36);
+  ctx.fillText("KLE BCA & BBA", TEX_W - 60, TEX_H - 70);
 
-  // Soft edge depth gradient (subtle paper crease shading)
+  // Soft subtle paper edge shading
   const vignette = ctx.createRadialGradient(
-    TEX_W / 2, TEX_H / 2, TEX_H * 0.36,
+    TEX_W / 2, TEX_H / 2, TEX_H * 0.38,
     TEX_W / 2, TEX_H / 2, TEX_H * 0.72
   );
   vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(30, 20, 10, 0.08)");
+  vignette.addColorStop(1, "rgba(30, 20, 10, 0.05)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, TEX_W, TEX_H);
 }
@@ -271,7 +305,7 @@ export function getPaperMaterial(event, rule) {
   const canvas = document.createElement("canvas");
   canvas.width = TEX_W;
   canvas.height = TEX_H;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { alpha: false });
   const design = {
     number: event.id,
     title: event.name,
@@ -286,23 +320,20 @@ export function getPaperMaterial(event, rule) {
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearFilter;
+  // Enable mipmapping and trilinear filtering to eliminate downscale blur and shimmering
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
+  texture.anisotropy = maxAnisotropy;
 
-  // Match the Houdini UV orientation:
-  // In the FBX mesh, minZ (top of camera view) has V=0, maxZ (bottom) has V=1.
-  // Standard CanvasTexture has V=1 at the top of the canvas.
-  // By setting repeat(1, -1) and center(0.5, 0.5) WITHOUT ANY ROTATION,
-  // the V coordinate is inverted (V -> 1 - V) so canvas top maps to mesh top,
-  // and the U coordinate is preserved (U -> U) so text is NOT mirrored.
+  // Exact vertical flip without horizontal mirroring:
   texture.center.set(0.5, 0.5);
   texture.repeat.set(1, -1);
 
   const material = new THREE.MeshStandardMaterial({
     map: texture,
-    roughness: 0.85,
-    metalness: 0.0,
+    roughness: 0.75,
+    metalness: 0.02,
     side: THREE.DoubleSide,
     transparent: true,
     opacity: 1,

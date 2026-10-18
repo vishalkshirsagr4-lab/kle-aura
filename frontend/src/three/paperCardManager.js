@@ -1,20 +1,42 @@
 import * as THREE from "three";
+import { setTextureAnisotropy } from "./paperTexture";
 
 /* Shared paper-crumple renderer for all event cards.
    Uses the Three.js multiple-element scissor pattern:
-   One shared WebGLRenderer and one fixed full-window canvas.
+   One shared WebGLRenderer and one fixed full-window transparent canvas.
    Each card's poster is rendered into its exact viewport rectangle.
-   The poster mesh stands upright, directly facing the camera with zero
-   perspective distortion at rest, eliminating blank spaces and tabletop skew. */
+   The poster mesh stands upright, facing the camera with authentic tactile
+   paper curvature, subtle folds, realistic lighting, and smooth pointer tilt. */
 
 const CARD_FOV = 28;
-const FILL = 0.92;
+const FILL = 0.90; // Fills 90% of container (eliminates empty space while leaving room for tilt)
 const SHEET_W = 1.0;
 const SHEET_H = 1.414;
-const SHEET_ASPECT = SHEET_W / SHEET_H; // ~0.707 (standard 1 : 1.414 paper ratio)
-const REST_P = 0.00; // Perfectly flat, undistorted rest state
+const SHEET_ASPECT = SHEET_W / SHEET_H; // ~0.707 (standard ISO paper ratio)
+const REST_P = 0.02; // Authentic subtle paper sheet curvature at rest
 
 let core = null;
+let shadowTexture = null;
+
+function getShadowTexture() {
+  if (shadowTexture) return shadowTexture;
+  const c = document.createElement("canvas");
+  c.width = 256;
+  c.height = 360;
+  const ctx = c.getContext("2d");
+  // Feathered radial gradient with brand-tinted soft contact shadow
+  const g = ctx.createRadialGradient(128, 180, 40, 128, 180, 160);
+  g.addColorStop(0, "rgba(79, 70, 229, 0.16)"); // Soft purple contact core
+  g.addColorStop(0.35, "rgba(15, 23, 42, 0.12)");
+  g.addColorStop(0.70, "rgba(15, 23, 42, 0.04)");
+  g.addColorStop(1, "rgba(15, 23, 42, 0)"); // Seamless zero-edge fade
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 360);
+  shadowTexture = new THREE.CanvasTexture(c);
+  shadowTexture.generateMipmaps = true;
+  shadowTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  return shadowTexture;
+}
 
 function makeCore(animData) {
   const canvas = document.createElement("canvas");
@@ -30,18 +52,17 @@ function makeCore(animData) {
     preserveDrawingBuffer: false,
   });
 
-  const coarse =
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(pointer: coarse)").matches;
-
-  renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 2),
-  );
+  // Preserve high-DPI crispness on all displays
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMapping = THREE.LinearToneMapping;
   renderer.toneMappingExposure = 1.0;
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(0x000000, 0); // 100% transparent canvas background
   renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  setTextureAnisotropy(maxAniso);
+
   document.body.appendChild(canvas);
 
   const state = {
@@ -97,12 +118,11 @@ function failAll(state) {
 
 /**
  * Positions the camera directly in front of the upright poster.
- * Centers the poster with tight, consistent margins (no large empty space above/below).
+ * Centers the poster tightly, eliminating unnecessary empty space.
  */
 function fitCamera(cam, aspect) {
   cam.aspect = aspect;
 
-  // Fit the poster within the available container aspect ratio
   const visH =
     aspect >= SHEET_ASPECT
       ? SHEET_H / FILL
@@ -164,27 +184,37 @@ function tick(state, now) {
     const rate = view.rate;
     view.p += (view.targetP - view.p) * (1 - Math.exp(-rate * dt));
     if (Math.abs(view.targetP - view.p) < 0.001) view.p = view.targetP;
-    const animatingP = view.p !== prevP;
+    const animatingP = Math.abs(view.p - prevP) > 0.0001;
 
     const prevTx = view.tiltX;
     const prevTy = view.tiltY;
-    view.tiltX += (view.targetTiltX - view.tiltX) * (1 - Math.exp(-9 * dt));
-    view.tiltY += (view.targetTiltY - view.tiltY) * (1 - Math.exp(-9 * dt));
-    const animatingT = view.tiltX !== prevTx || view.tiltY !== prevTy;
+    view.tiltX += (view.targetTiltX - view.tiltX) * (1 - Math.exp(-10 * dt));
+    view.tiltY += (view.targetTiltY - view.tiltY) * (1 - Math.exp(-10 * dt));
+    const animatingT =
+      Math.abs(view.tiltX - prevTx) > 0.0001 ||
+      Math.abs(view.tiltY - prevTy) > 0.0001;
 
     if (animatingP) {
       const frame = view.p * maxFrame;
-      if (Math.abs(frame - view.lastFrame) > 0.003) {
+      if (Math.abs(frame - view.lastFrame) > 0.002) {
         writeFrame(view, animData, frame);
       }
       if (view.onProgress) view.onProgress(view.p);
     }
     if (animatingT) {
       // Base rotation is Math.PI / 2 (standing upright facing camera).
-      // Gentle, subtle 3D tilt follows pointer during hover/touch
+      // Natural 3D paper tilt following pointer/touch
       view.mesh.rotation.x = Math.PI / 2 - view.tiltX;
       view.mesh.rotation.y = view.tiltY;
-      view.mesh.rotation.z = -view.tiltY * 0.35;
+      view.mesh.rotation.z = -view.tiltY * 0.28;
+
+      // Soft shadow shifts with parallax
+      if (view.shadowMesh) {
+        view.shadowMesh.position.x = view.tiltY * 0.04;
+        view.shadowMesh.position.y = -0.015 + view.tiltX * 0.04;
+        view.shadowMesh.rotation.x = -view.tiltX * 0.45;
+        view.shadowMesh.rotation.y = view.tiltY * 0.45;
+      }
     }
 
     if (view.dim !== view.dimTarget) {
@@ -201,6 +231,7 @@ function tick(state, now) {
     const rect = el.getBoundingClientRect();
     if (
       rect.width === 0 ||
+      rect.height === 0 ||
       rect.bottom < -10 ||
       rect.top > vh + 10 ||
       rect.right < -10 ||
@@ -226,7 +257,7 @@ function tick(state, now) {
     if (!needsRender) continue;
 
     const aspect = w / Math.max(h, 1);
-    if (Math.abs(aspect - view.camera.aspect) > 0.01) {
+    if (Math.abs(aspect - view.camera.aspect) > 0.005) {
       fitCamera(view.camera, aspect);
     }
 
@@ -273,6 +304,8 @@ function disposeView(view) {
   view.observer?.disconnect();
   view.resizeObserver?.disconnect();
   view.geometry.dispose();
+  view.shadowMesh?.geometry?.dispose();
+  view.shadowMesh?.material?.dispose();
   core?.views.delete(view);
   core?.failHandlers.delete(view.onFail);
 }
@@ -332,33 +365,47 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
   mesh.rotation.x = Math.PI / 2;
 
   const scene = new THREE.Scene();
-  // Warm, balanced studio paper ambiance
-  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
 
-  // Key directional light in front of the poster creating crisp paper highlights
-  const dir = new THREE.DirectionalLight(0xfff9ee, 0.70);
-  dir.position.set(1.5, 2.5, 3.5);
+  // Delicate physical contact shadow behind the paper sheet for authentic 3D depth
+  const shadowGeo = new THREE.PlaneGeometry(1.04, 1.46);
+  const shadowMat = new THREE.MeshBasicMaterial({
+    map: getShadowTexture(),
+    transparent: true,
+    opacity: 0.22,
+    depthWrite: false,
+  });
+  const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+  shadowMesh.position.set(0, -0.015, -0.04);
+  scene.add(shadowMesh);
+
+  // Balanced studio paper ambiance
+  scene.add(new THREE.AmbientLight(0xffffff, 0.48));
+
+  // Key directional light in front and above the poster creating crisp paper highlights
+  const dir = new THREE.DirectionalLight(0xfff8f0, 0.78);
+  dir.position.set(1.8, 2.8, 3.2);
   scene.add(dir);
 
   // Soft cool bounce fill
-  const fill = new THREE.DirectionalLight(0xa0c0e0, 0.20);
-  fill.position.set(-2, -1.5, 2);
+  const fill = new THREE.DirectionalLight(0x93c5fd, 0.22);
+  fill.position.set(-2.0, -1.2, 2.0);
   scene.add(fill);
 
-  const camera = new THREE.PerspectiveCamera(CARD_FOV, 1, 0.1, 20);
-  fitCamera(camera, 1);
+  const camera = new THREE.PerspectiveCamera(CARD_FOV, SHEET_ASPECT, 0.1, 20);
+  fitCamera(camera, SHEET_ASPECT);
 
   const view = {
     el,
     scene,
     camera,
     mesh,
+    shadowMesh,
     geometry,
     positionAttr,
     normalAttr,
     p: REST_P,
     targetP: REST_P,
-    rate: 6.5,
+    rate: 7,
     tiltX: 0,
     tiltY: 0,
     targetTiltX: 0,
@@ -399,25 +446,25 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     setInteraction({ hover = false, pressed = false, focused = false } = {}) {
       if (disposed) return;
       if (pressed) {
-        // Subtle crease on press
-        view.targetP = 0.10;
-        view.rate = 12;
+        // Satisfying tactile paper press crumple
+        view.targetP = 0.14;
+        view.rate = 14;
       } else if (hover) {
-        // Gentle paper wrinkle on hover (preserves full readability)
-        view.targetP = 0.05;
-        view.rate = 7;
+        // Realistic paper folds and wrinkles on hover
+        view.targetP = 0.07;
+        view.rate = 8;
       } else if (focused) {
-        view.targetP = 0.04;
-        view.rate = 7;
+        view.targetP = 0.05;
+        view.rate = 8;
       } else {
-        // Return smoothly to flat sheet
+        // Return smoothly to tactile resting curvature
         view.targetP = REST_P;
-        view.rate = 6;
+        view.rate = 7;
       }
     },
     setTilt(nx, ny) {
       if (disposed) return;
-      // Controlled tilt angle in range [-0.10, 0.10] radians (~6 degrees)
+      // Controlled tilt angle in range [-0.14, 0.14] radians (~8 degrees)
       view.targetTiltY = nx * 0.14;
       view.targetTiltX = ny * 0.10;
     },

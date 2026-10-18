@@ -15,7 +15,7 @@ const CAN_HOVER =
   typeof window.matchMedia === "function" &&
   window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/* Centered CSS Poster Fallback matching exact 1:1.4 aspect ratio */
+/* Centered CSS Poster Fallback matching exact 1 : 1.414 aspect ratio */
 function PosterFallback({ event, rule, ink }) {
   const Icon = event?.icon;
   const numStr = `#${String(event?.id || 0).padStart(2, "0")}`;
@@ -24,20 +24,20 @@ function PosterFallback({ event, rule, ink }) {
   return (
     <div
       aria-hidden="true"
-      className="relative mx-auto my-auto flex h-[92%] aspect-[5/7] flex-col justify-between overflow-hidden rounded-xl bg-[#f9f8f4] p-3 text-slate-800 shadow-md border border-slate-300/60 dark:border-slate-700/60"
+      className="relative size-full flex flex-col justify-between overflow-hidden rounded-xl bg-[#faf9f6] p-3 text-slate-800 shadow-md border border-slate-300/60 dark:border-slate-700/60"
     >
-      {/* Subtle paper grid lines */}
+      {/* Subtle paper grid */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-20"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg,transparent 0 28px,rgba(148,163,184,.2) 28px 29px),repeating-linear-gradient(90deg,transparent 0 28px,rgba(148,163,184,.2) 28px 29px)",
+            "repeating-linear-gradient(0deg,transparent 0 24px,rgba(148,163,184,.2) 24px 25px),repeating-linear-gradient(90deg,transparent 0 24px,rgba(148,163,184,.2) 24px 25px)",
         }}
       />
       {/* Framed inner border */}
       <div
         className="pointer-events-none absolute inset-1.5 rounded-lg border"
-        style={{ borderColor: `${ink}33` }}
+        style={{ borderColor: `${ink}40` }}
       />
 
       {/* Header */}
@@ -65,9 +65,12 @@ function PosterFallback({ event, rule, ink }) {
         >
           {Icon && <Icon className="size-7 sm:size-8" aria-hidden="true" />}
         </div>
-        <p className="mt-2 max-w-[92%] text-center text-[11px] font-extrabold leading-tight text-slate-900 sm:text-xs line-clamp-2">
+        <p className="mt-2 max-w-[94%] text-center text-xs font-extrabold leading-tight text-slate-900 sm:text-sm line-clamp-2">
           {event?.name}
         </p>
+        <span className="mt-0.5 text-[9px] font-semibold opacity-85" style={{ color: ink }}>
+          {rule?.type}
+        </span>
       </div>
 
       {/* Footer stamp */}
@@ -170,7 +173,7 @@ export default function EventCard({
     if (!r.width || !r.height) return;
     const nx = (e.clientX - r.left) / r.width - 0.5;
     const ny = (e.clientY - r.top) / r.height - 0.5;
-    const touchScale = e.pointerType === "touch" ? 0.6 : 1;
+    const touchScale = e.pointerType === "touch" ? 0.7 : 1;
     handleRef.current?.setTilt(nx * touchScale, ny * touchScale);
   };
 
@@ -199,12 +202,13 @@ export default function EventCard({
       onPointerCancel={onPointerUp}
       onPointerMove={onPointerMove}
     >
-      {/* ================= COMPACT POSTER AREA ================= */}
-      <div className="relative h-48 sm:h-56 md:h-60 w-full overflow-hidden rounded-t-2xl bg-gradient-to-b from-slate-100/90 to-slate-200/50 dark:from-slate-800/80 dark:to-slate-900/60 border-b border-border/60 flex items-center justify-center">
-        {/* Poster 3D Mesh anchor element */}
+      {/* ================= CLEAN, PROPORTIONED POSTER VIEWPORT ================= */}
+      {/* Seamless, luminous container background (no dark-gray box) with mobile-optimized height */}
+      <div className="relative h-[210px] sm:h-[235px] md:h-[255px] w-full overflow-hidden rounded-t-2xl bg-gradient-to-b from-primary/[0.04] via-accent/[0.02] to-transparent dark:from-primary/[0.08] dark:via-accent/[0.03] dark:to-transparent border-b border-border/40 flex items-center justify-center p-2 sm:p-2.5">
+        {/* Poster 3D Mesh anchor element sized to exact 1 : 1.414 paper proportions */}
         <div
           ref={posterRef}
-          className="relative size-full touch-manipulation select-none flex items-center justify-center"
+          className="relative h-[92%] aspect-[1/1.414] max-w-full mx-auto touch-manipulation select-none flex items-center justify-center"
           role="img"
           aria-label={`${event?.name} official event poster sheet`}
         >
@@ -218,18 +222,18 @@ export default function EventCard({
           </div>
 
           {/* Integrated small 3D Paper badge inside the poster viewport */}
-          <div className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1 rounded-full bg-slate-900/70 px-2 py-0.5 text-[9px] font-bold text-white shadow-xs backdrop-blur-xs">
-            <Sparkles className="size-2.5 text-cyan-300" />
+          <div className="pointer-events-none absolute bottom-1.5 left-1.5 z-10 flex items-center gap-1 rounded-full border border-primary/20 bg-white/90 dark:bg-slate-900/90 px-2 py-0.5 text-[9px] font-bold text-primary shadow-xs backdrop-blur-xs">
+            <Sparkles className="size-2.5 text-accent" />
             <span>3D Paper</span>
           </div>
         </div>
       </div>
 
-      {/* ================= STREAMLINED CARD BODY ================= */}
-      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4 md:p-5">
+      {/* ================= COMPACT CARD BODY ================= */}
+      <div className="flex flex-1 flex-col justify-between p-3 sm:p-3.5">
         <div>
           {/* Category Badge & Event # */}
-          <div className="mb-2 flex items-center justify-between gap-1.5">
+          <div className="mb-1.5 flex items-center justify-between gap-1.5">
             <div className="flex items-center gap-1.5 min-w-0">
               <span
                 className="truncate rounded-md px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white shadow-xs"
@@ -249,24 +253,24 @@ export default function EventCard({
           </div>
 
           {/* Event Title */}
-          <h3 className="text-sm font-extrabold leading-snug tracking-tight text-foreground sm:text-base md:text-lg line-clamp-1 sm:line-clamp-2">
+          <h3 className="text-sm font-extrabold leading-snug tracking-tight text-foreground sm:text-base line-clamp-1 sm:line-clamp-2">
             {event?.name}
           </h3>
 
-          {/* Description / Judging focus */}
+          {/* Judging focus / description */}
           {rule?.judging && (
-            <p className="mt-1 text-xs text-muted line-clamp-1 sm:line-clamp-2">
+            <p className="mt-1 text-xs text-muted line-clamp-1">
               <span className="font-semibold text-foreground/80">Focus:</span> {rule.judging}
             </p>
           )}
 
-          {/* Chips specs */}
+          {/* Compact specs chips */}
           {rule?.chips && rule.chips.length > 0 && (
-            <div className="mt-2.5 flex flex-wrap gap-1">
-              {rule.chips.slice(0, 3).map((chip, idx) => (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {rule.chips.slice(0, 2).map((chip, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-slate-100/70 dark:bg-slate-800/60 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/80"
+                  className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-slate-100/60 dark:bg-slate-800/50 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/80"
                 >
                   {idx === 0 ? (
                     <Users className="size-2.5 text-muted" />
@@ -283,10 +287,10 @@ export default function EventCard({
         </div>
 
         {/* ================= ACTIONS ================= */}
-        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
+        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border/40 pt-2.5">
           <button
             type="button"
-            className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 py-1.5 text-xs font-bold text-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-xl border border-border bg-surface px-2.5 py-1 text-xs font-bold text-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             onClick={(e) => {
               e.stopPropagation();
               onViewRules?.(event.id);
@@ -299,7 +303,7 @@ export default function EventCard({
 
           <button
             type="button"
-            className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-primary px-2.5 py-1.5 text-xs font-bold text-white shadow-xs shadow-accent/20 transition hover:opacity-95 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-accent to-primary px-2.5 py-1 text-xs font-bold text-white shadow-xs shadow-accent/20 transition hover:opacity-95 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             onClick={(e) => {
               e.stopPropagation();
               onRegister?.(event.name);
