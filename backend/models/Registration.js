@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const memoryStore = require("../db/memoryStore");
 
 const registrationSchema = new mongoose.Schema(
   {
@@ -35,8 +36,6 @@ const registrationSchema = new mongoose.Schema(
       required: [true, "PUC roll number is required"],
       trim: true,
     },
-    // Optional: students registering for the same event with the same
-    // team name are counted as one team. Blank = solo participant.
     teamName: {
       type: String,
       trim: true,
@@ -47,4 +46,66 @@ const registrationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Registration", registrationSchema);
+const RealRegistration = mongoose.model("Registration", registrationSchema);
+
+function RegistrationConstructor(data) {
+  if (mongoose.connection.readyState === 1) {
+    return new RealRegistration(data);
+  }
+  this.data = {
+    _id: memoryStore.genId(),
+    fullname: (data.fullname || "").trim(),
+    email: (data.email || "").trim().toLowerCase(),
+    college: (data.college || "").trim(),
+    phone: (data.phone || "").trim(),
+    event: (data.event || "").trim(),
+    pucRoll: (data.pucRoll || "").trim(),
+    teamName: (data.teamName || "").trim(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  this.save = async function () {
+    const list = memoryStore.getRegistrations();
+    list.unshift(this.data);
+    memoryStore.setRegistrations(list);
+    return this.data;
+  };
+}
+
+RegistrationConstructor.find = (query, projection) => {
+  if (mongoose.connection.readyState === 1) {
+    return RealRegistration.find(query, projection);
+  }
+  const store = memoryStore.getRegistrations();
+  const buildQuery = (data) => {
+    let result = [...data];
+    const queryObj = {
+      sort: (sortCriteria) => {
+        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return queryObj;
+      },
+      limit: (count) => {
+        result = result.slice(0, count);
+        return queryObj;
+      },
+      lean: () => Promise.resolve(result),
+      then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
+    };
+    return queryObj;
+  };
+  return buildQuery(store);
+};
+
+RegistrationConstructor.findByIdAndDelete = async (id) => {
+  if (mongoose.connection.readyState === 1) {
+    return RealRegistration.findByIdAndDelete(id);
+  }
+  const list = memoryStore.getRegistrations();
+  const idx = list.findIndex((r) => r._id === id);
+  if (idx === -1) return null;
+  const [removed] = list.splice(idx, 1);
+  memoryStore.setRegistrations(list);
+  return removed;
+};
+
+module.exports = RegistrationConstructor;

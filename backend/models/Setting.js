@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
+const memoryStore = require("../db/memoryStore");
 
 const URL_RE = /^(https?:\/\/\S+)?$/;
 
-// Single document (key = "main") holding the event info shown to students
 const settingSchema = new mongoose.Schema(
   {
     key: { type: String, default: "main", unique: true },
@@ -19,7 +19,6 @@ const settingSchema = new mongoose.Schema(
       match: [/^\d{2}:\d{2}$/, "End time must be HH:MM"],
     },
     venue: { type: String, trim: true, maxlength: [120, "Venue is too long"] },
-    // College social media links (optional, https only)
     instagram: { type: String, trim: true, match: [URL_RE, "Instagram link must start with http:// or https://"] },
     youtube: { type: String, trim: true, match: [URL_RE, "YouTube link must start with http:// or https://"] },
     facebook: { type: String, trim: true, match: [URL_RE, "Facebook link must start with http:// or https://"] },
@@ -29,4 +28,34 @@ const settingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Setting", settingSchema);
+const RealSetting = mongoose.model("Setting", settingSchema);
+
+const SettingProxy = {
+  findOne: (query) => {
+    if (mongoose.connection.readyState === 1) {
+      return RealSetting.findOne(query);
+    }
+    const current = memoryStore.getSettings();
+    return {
+      lean: () => Promise.resolve({ ...current }),
+      then: (resolve, reject) => Promise.resolve({ ...current }).then(resolve, reject),
+    };
+  },
+  findOneAndUpdate: (query, update, options) => {
+    if (mongoose.connection.readyState === 1) {
+      return RealSetting.findOneAndUpdate(query, update, options);
+    }
+    const current = memoryStore.getSettings();
+    const updated = {
+      ...current,
+      ...(update.$set || update),
+    };
+    memoryStore.setSettings(updated);
+    return {
+      lean: () => Promise.resolve({ ...updated }),
+      then: (resolve, reject) => Promise.resolve({ ...updated }).then(resolve, reject),
+    };
+  },
+};
+
+module.exports = SettingProxy;
