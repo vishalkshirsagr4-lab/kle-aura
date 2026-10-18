@@ -33,6 +33,21 @@ Username is not case-sensitive; the password is. Change these before going live.
    ```
 4. Student portal: http://localhost:3000 · Admin portal: http://localhost:3000/admin
 
+## Frontend API configuration and deployment
+The frontend reads `REACT_APP_API_URL` from `frontend/.env` and prefixes it to
+API requests. The local value is `http://localhost:5000`, matching the backend
+development server. `frontend/.env` is ignored by Git; use the committed
+`frontend/.env.example` as the template for other environments.
+
+For deployment, configure `REACT_APP_API_URL` in the frontend host's build
+environment (for example, the backend's public origin such as
+`https://api.example.com`) and trigger a new frontend build. Create React App
+embeds `REACT_APP_*` values at build time, so changing the hosting variable does
+not update an already-built frontend. The value is public in the browser bundle:
+put only the backend origin here, never credentials, JWT secrets, or database
+URLs. Set it to an empty string only when the API is served from the same origin
+as the frontend; the `localhost:5000` proxy is for local development.
+
 ## What's new
 - 18 talent events (Quiz, Dance, Pencil Sketch ... Solo Instrumental), each with a React Icon (`frontend/src/data/events.js`).
 - Event poster dialog for AI-AURA 2K26 (`components/PosterPopup.js`): open it with **View poster** in the hero; it no longer interrupts visitors automatically.

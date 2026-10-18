@@ -1,4 +1,7 @@
 const TOKEN_KEY = "ai-aura-admin-token";
+const API_BASE_URL = (process.env.REACT_APP_API_URL || "")
+  .trim()
+  .replace(/\/+$/, "");
 
 export const getToken = () => sessionStorage.getItem(TOKEN_KEY);
 export const setToken = (token) =>
@@ -12,7 +15,7 @@ export async function api(path, { method = "GET", body, auth = false } = {}) {
   if (body) headers["Content-Type"] = "application/json";
   if (auth && getToken()) headers.Authorization = `Bearer ${getToken()}`;
 
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
