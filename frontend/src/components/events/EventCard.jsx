@@ -5,7 +5,6 @@ import {
   Users,
   Clock,
   Sparkles,
-  Trophy,
   Heart,
   Eye,
   Share2,
@@ -127,7 +126,6 @@ export default function EventCard({
   hit = false,
   dimmed = false,
   mode = "3d",
-  layout = "grid", // "grid" (columns & rows) or "list" (horizontal row)
   isSaved = false,
   onToggleSave,
   onPreviewPoster,
@@ -276,171 +274,7 @@ export default function EventCard({
 
   const is3dActive = mode === "3d" && threeReady;
 
-  // ================= HORIZONTAL ROW / LIST LAYOUT =================
-  if (layout === "list") {
-    return (
-      <article
-        ref={cardRef}
-        data-event-card="true"
-        className={`group relative flex flex-row items-stretch rounded-2xl border bg-surface transition-all duration-200 overflow-hidden shadow-xs hover:shadow-md hover:border-accent/50 ${
-          hit
-            ? "border-accent ring-2 ring-accent/30 shadow-sm"
-            : "border-border/80"
-        } ${dimmed ? "opacity-35 saturate-50" : "opacity-100"}`}
-        onPointerEnter={onPointerEnter}
-        onPointerLeave={onPointerLeave}
-      >
-        {/* Left Side: Compact Poster Thumbnail */}
-        <div
-          className="relative w-24 sm:w-32 md:w-36 shrink-0 bg-slate-900 overflow-hidden cursor-pointer flex items-center justify-center p-1.5"
-          onClick={() => onPreviewPoster?.(event)}
-        >
-          {event?.image ? (
-            <img
-              src={event.image}
-              alt={event.name}
-              className="size-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-          ) : (
-            <div className="size-full flex items-center justify-center text-white/70 text-xs">
-              #{event.id}
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
-          {/* Badge & Number */}
-          <span
-            className="absolute top-1.5 left-1.5 rounded px-1 py-0.2 text-[8px] font-extrabold uppercase text-white shadow-xs"
-            style={{ background: ink }}
-          >
-            #{String(event.id).padStart(2, "0")}
-          </span>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreviewPoster?.(event);
-            }}
-            className="absolute bottom-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white/90 hover:bg-black/90 hover:text-white backdrop-blur-xs transition"
-            title="Preview Poster"
-          >
-            <Eye className="size-3" />
-          </button>
-        </div>
-
-        {/* Right Side: Event Details & Inline Actions */}
-        <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-3 min-w-0">
-          <div>
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span
-                  className="truncate rounded px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white shadow-xs"
-                  style={{ background: ink }}
-                >
-                  {rule?.group || event?.category}
-                </span>
-                <span className="text-[10px] sm:text-xs font-semibold text-muted truncate">
-                  {rule?.type}
-                </span>
-              </div>
-
-              {/* Action Icons: Bookmark & Share */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleSave?.(event.id);
-                  }}
-                  className={`grid size-6 sm:size-7 place-items-center rounded-full border transition ${
-                    isSaved
-                      ? "border-rose-400 bg-rose-50 text-rose-600 dark:bg-rose-950/80 dark:text-rose-400"
-                      : "border-border bg-surface text-muted hover:text-foreground"
-                  }`}
-                  title={isSaved ? "Saved" : "Save"}
-                >
-                  <Heart
-                    className={`size-3 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`}
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="grid size-6 sm:size-7 place-items-center rounded-full border border-border bg-surface text-muted hover:text-foreground transition"
-                  title="Share"
-                >
-                  {copied ? (
-                    <Check className="size-3 text-emerald-600" />
-                  ) : (
-                    <Share2 className="size-3" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <h3 className="mt-1 text-xs sm:text-sm md:text-base font-extrabold text-foreground truncate">
-              {event?.name}
-            </h3>
-
-            {event?.tagline && (
-              <p className="mt-0.5 text-[10px] sm:text-xs text-muted truncate">
-                {event.tagline}
-              </p>
-            )}
-
-            {rule?.chips && rule.chips.length > 0 && (
-              <div className="mt-1.5 hidden xs:flex flex-wrap gap-1">
-                {rule.chips.slice(0, 3).map((chip, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 text-[9px] font-semibold text-foreground/80"
-                  >
-                    {idx === 0 ? (
-                      <Users className="size-2.5 text-muted" />
-                    ) : idx === 1 ? (
-                      <Clock className="size-2.5 text-muted" />
-                    ) : (
-                      <Trophy className="size-2.5 text-muted" />
-                    )}
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-2 flex items-center justify-end gap-2 border-t border-border/40 pt-1.5">
-            <button
-              type="button"
-              className="inline-flex h-6 sm:h-7 items-center justify-center gap-1 rounded-lg border border-border bg-surface px-2 text-[10px] sm:text-xs font-bold text-foreground transition hover:border-accent hover:text-accent"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewRules?.(event.id);
-              }}
-            >
-              <FileText className="size-3" />
-              <span>Rules</span>
-            </button>
-            <button
-              type="button"
-              className="inline-flex h-6 sm:h-7 items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-accent to-primary px-2.5 text-[10px] sm:text-xs font-bold text-white shadow-xs transition hover:opacity-95"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRegister?.(event.name);
-              }}
-            >
-              <span>Register</span>
-              <ArrowRight className="size-3" />
-            </button>
-          </div>
-        </div>
-      </article>
-    );
-  }
-
-  // ================= COLUMNS & ROWS (GRID) LAYOUT =================
   return (
     <article
       ref={cardRef}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Sparkles,
   ChevronLeft,
@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Eye,
   Heart,
-  Trophy,
 } from "lucide-react";
 import { GROUP_INK } from "../../three/paperTexture";
 

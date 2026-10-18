@@ -14,21 +14,18 @@ import {
   Bot as FaRobot,
   PenTool as FaPenNib,
   Video as FaVideo,
-  Layers,
   Orbit,
   Search,
   Heart,
   Volume2,
   VolumeX,
-  Trophy,
   Share2,
   Check,
-  Eye,
   Clock,
   Users,
   Compass,
-  LayoutGrid,
-  List,
+  Play,
+  Pause,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -144,7 +141,6 @@ function EventExplorer({ onSelect }) {
     prefersReduced() ? "fallback" : "pending",
   );
   const [showCarousel, setShowCarousel] = useState(false);
-  const [layoutMode, setLayoutMode] = useState("grid"); // "grid" (Columns & Rows) or "list" (Horizontal rows)
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -466,66 +462,33 @@ function EventExplorer({ onSelect }) {
             <span>Explore the Events</span>
           </h2>
           <p className="mt-0.5 text-xs text-muted sm:text-sm">
-            Discover 18 state-level competitions in clean columns &amp; rows.
+            Discover 18 state-level competitions with interactive 3D cards.
           </p>
         </div>
 
-        {/* Action controls: Layout Mode (Grid/Rows), 3D Orbit, Sound */}
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          {/* Layout Switcher: Columns & Rows (Grid) vs Horizontal (Rows/List) */}
-          <div className="flex items-center rounded-xl border border-border bg-surface p-0.5 shadow-xs">
-            <button
-              type="button"
-              onClick={() => {
-                playTone(soundEnabled, "pop");
-                setLayoutMode("grid");
-              }}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                layoutMode === "grid"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted hover:text-foreground"
-              }`}
-              title="Columns & Rows Grid"
-              aria-pressed={layoutMode === "grid"}
-            >
-              <LayoutGrid className="size-3.5" />
-              <span>Grid</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                playTone(soundEnabled, "pop");
-                setLayoutMode("list");
-              }}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                layoutMode === "list"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted hover:text-foreground"
-              }`}
-              title="Horizontal Rows"
-              aria-pressed={layoutMode === "list"}
-            >
-              <List className="size-3.5" />
-              <span>Rows</span>
-            </button>
-          </div>
-
-          {/* 3D Orbit Showcase Toggle */}
+        {/* Action controls: Play 3D Showcase & Interactive Audio */}
+        <div className="flex items-center gap-2">
+          {/* Play 3D Button */}
           <button
             type="button"
             onClick={() => {
               playTone(soundEnabled, "pop");
               setShowCarousel((prev) => !prev);
             }}
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-xs transition ${
+            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold shadow-xs transition-all duration-200 ${
               showCarousel
-                ? "border-accent bg-accent text-white shadow-accent/20"
-                : "border-border bg-surface text-foreground/80 hover:border-accent/40"
+                ? "border-accent bg-accent text-white shadow-accent/25 ring-2 ring-accent/30"
+                : "border-primary/40 bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary hover:to-accent hover:text-white"
             }`}
+            title={showCarousel ? "Close 3D View" : "Play 3D Auto-Rotating Events Showcase"}
             aria-pressed={showCarousel}
           >
-            <Orbit className="size-3.5" />
-            <span>{showCarousel ? "Close 3D Orbit" : "🎡 3D Orbit"}</span>
+            {showCarousel ? (
+              <Pause className="size-3.5 fill-current" />
+            ) : (
+              <Play className="size-3.5 fill-current" />
+            )}
+            <span>{showCarousel ? "Close 3D" : "Play 3D"}</span>
           </button>
 
           {/* Sound Toggle */}
@@ -794,11 +757,7 @@ function EventExplorer({ onSelect }) {
       {/* ================= RESPONSIVE COLUMNS & ROWS GRID ================= */}
       <div
         ref={gridRef}
-        className={
-          layoutMode === "grid"
-            ? "grid grid-cols-2 gap-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-            : "grid grid-cols-1 gap-2 sm:gap-2.5 max-w-4xl mx-auto"
-        }
+        className="grid grid-cols-2 gap-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5"
       >
         {list.map((r) => {
           const ev = events.find((e) => e.id === r.id);
@@ -813,7 +772,6 @@ function EventExplorer({ onSelect }) {
               hit={hit}
               dimmed={dim}
               mode={mode3d}
-              layout={layoutMode}
               isSaved={isSaved}
               onToggleSave={toggleSave}
               onPreviewPoster={setPreviewEvent}
