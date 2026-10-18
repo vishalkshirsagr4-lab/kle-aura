@@ -1,17 +1,15 @@
 import * as THREE from "three";
 
 /* Shared paper-crumple renderer for all event cards.
-
-   One WebGLRenderer + one fixed canvas for the whole page (the three.js
-   "multiple elements" pattern): every visible card is rendered into its
-   own scissor/viewport rectangle. Idle cards cost nothing — a view is
-   redrawn only when its crumple/tilt is animating or its page position
-   changed. WebGL failures are reported so cards can fall back to CSS. */
+   Uses the Three.js multiple-element scissor pattern:
+   One shared WebGLRenderer and one fixed full-window canvas.
+   Each card view is rendered only into its poster area viewport.
+   Idle views cost zero GPU time. */
 
 const CARD_FOV = 28;
-const PITCH = (40 * Math.PI) / 180; // camera elevation over the flat sheet
-const REST_P = 0.04;
-const FILL = 0.92;
+const PITCH = (22 * Math.PI) / 180; // 22-degree gentle elevation for clear poster view
+const REST_P = 0.00; // Flat, undistorted rest state
+const FILL = 0.94;
 
 let core = null;
 
@@ -19,23 +17,26 @@ function makeCore(animData) {
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
   canvas.style.cssText =
-    "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40;";
+    "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20;";
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
     antialias: true,
     powerPreference: "high-performance",
-    preserveDrawingBuffer: true,
+    preserveDrawingBuffer: false,
   });
+
   const coarse =
     typeof window.matchMedia === "function" &&
     window.matchMedia("(pointer: coarse)").matches;
+
   renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio || 1, coarse ? 1 : 2),
+    Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 2),
   );
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.useLegacyLights = true;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
   renderer.setClearColor(0x000000, 0);
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   document.body.appendChild(canvas);
@@ -62,10 +63,12 @@ function makeCore(animData) {
     e.preventDefault();
     failAll(state);
   };
+
   window.addEventListener("scroll", onScrollResize, { passive: true });
   window.addEventListener("resize", onScrollResize);
   document.addEventListener("visibilitychange", onVisibility);
   canvas.addEventListener("webglcontextlost", onContextLost);
+
   state.cleanup = () => {
     window.removeEventListener("scroll", onScrollResize);
     window.removeEventListener("resize", onScrollResize);
@@ -91,14 +94,14 @@ function failAll(state) {
 
 function fitCamera(cam, aspect) {
   cam.aspect = aspect;
-  // projected extent of the sheet (with crumple headroom) at the target plane
-  const projW = 1.14;
-  const projH = 1.1;
+  // projected extent of the sheet at the target plane
+  const projW = 1.08;
+  const projH = 1.35 * Math.cos(PITCH);
   const visH =
     aspect >= projW / projH ? projH / FILL : projW / projH / FILL / aspect;
   const d = visH / (2 * Math.tan((CARD_FOV / 2) * (Math.PI / 180)));
-  cam.position.set(0, 0.12 + d * Math.sin(PITCH), d * Math.cos(PITCH));
-  cam.lookAt(0, 0.12, 0);
+  cam.position.set(0, 0.05 + d * Math.sin(PITCH), d * Math.cos(PITCH));
+  cam.lookAt(0, 0.05, 0);
   cam.updateProjectionMatrix();
 }
 
@@ -151,7 +154,7 @@ function tick(state, now) {
     const prevP = view.p;
     const rate = view.rate;
     view.p += (view.targetP - view.p) * (1 - Math.exp(-rate * dt));
-    if (Math.abs(view.targetP - view.p) < 0.0015) view.p = view.targetP;
+    if (Math.abs(view.targetP - view.p) < 0.001) view.p = view.targetP;
     const animatingP = view.p !== prevP;
 
     const prevTx = view.tiltX;
@@ -162,7 +165,7 @@ function tick(state, now) {
 
     if (animatingP) {
       const frame = view.p * maxFrame;
-      if (Math.abs(frame - view.lastFrame) > 0.004) {
+      if (Math.abs(frame - view.lastFrame) > 0.003) {
         writeFrame(view, animData, frame);
       }
       if (view.onProgress) view.onProgress(view.p);
@@ -172,12 +175,10 @@ function tick(state, now) {
       view.mesh.rotation.y = view.tiltY;
     }
 
-    // Cards can be dimmed by the interest filter. The paper is painted by the
-    // shared canvas, not by the button, so the fade has to be applied here.
     if (view.dim !== view.dimTarget) {
       view.dim = view.dimTarget;
       const mat = view.mesh.material;
-      mat.opacity = view.dim ? 0.4 : 1;
+      mat.opacity = view.dim ? 0.35 : 1;
       mat.needsUpdate = true;
       view.rendered = false;
     }
@@ -188,10 +189,10 @@ function tick(state, now) {
     const rect = el.getBoundingClientRect();
     if (
       rect.width === 0 ||
-      rect.bottom < -8 ||
-      rect.top > vh + 8 ||
-      rect.right < -8 ||
-      rect.left > vw + 8
+      rect.bottom < -10 ||
+      rect.top > vh + 10 ||
+      rect.right < -10 ||
+      rect.left > vw + 10
     ) {
       continue;
     }
@@ -201,9 +202,6 @@ function tick(state, now) {
     const w = Math.round(rect.width);
     const h = Math.round(rect.height);
 
-    // Cards move for reasons that never fire scroll/resize: the GSAP grid
-    // entrance, the `scale-[1.03]` interest hit, filter relayouts. Comparing
-    // the scissor box each frame keeps the paper glued to its card.
     const moved =
       view.rl !== left || view.rb !== b || view.rw !== w || view.rh !== h;
 
@@ -267,7 +265,7 @@ function disposeView(view) {
   core?.failHandlers.delete(view.onFail);
 }
 
-/** True when the shared3D system is up. */
+/** True when the shared 3D system is up. */
 export function paperCardsActive() {
   return !!core;
 }
@@ -286,8 +284,8 @@ export function initPaperCards(animData) {
 }
 
 /**
- * Register one card element with the shared renderer.
- * Returns a handle: { setInteraction, setTilt, dispose }.
+ * Register one card's poster element with the shared renderer.
+ * Returns a handle: { setInteraction, setTilt, resetTilt, setDim, dispose }.
  */
 export function addPaperCard({ el, material, onProgress, onFail }) {
   if (!core) return null;
@@ -318,11 +316,21 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+
   const scene = new THREE.Scene();
-  scene.add(new THREE.AmbientLight(0xffffff, 1.25));
-  const dir = new THREE.DirectionalLight(0xffffff, 1.05);
-  dir.position.set(-1.4, 2.4, 1.8);
+  // Warm, balanced paper ambiance
+  scene.add(new THREE.AmbientLight(0xfff8ee, 0.72));
+
+  // Key directional light creating soft shadows on paper folds
+  const dir = new THREE.DirectionalLight(0xffffff, 0.82);
+  dir.position.set(1.5, 3.2, 2.2);
   scene.add(dir);
+
+  // Soft fill light from bottom-left for realistic bounce
+  const fill = new THREE.DirectionalLight(0x90b0e0, 0.22);
+  fill.position.set(-2, -1, 1);
+  scene.add(fill);
+
   const camera = new THREE.PerspectiveCamera(CARD_FOV, 1, 0.1, 20);
   fitCamera(camera, 5 / 7);
 
@@ -336,7 +344,7 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     normalAttr,
     p: REST_P,
     targetP: REST_P,
-    rate: 6,
+    rate: 6.5,
     tiltX: 0,
     tiltY: 0,
     targetTiltX: 0,
@@ -360,6 +368,7 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     { rootMargin: "160px" },
   );
   view.observer.observe(el);
+
   if ("ResizeObserver" in window) {
     view.resizeObserver = new ResizeObserver(() => {
       view.rendered = false;
@@ -376,24 +385,27 @@ export function addPaperCard({ el, material, onProgress, onFail }) {
     setInteraction({ hover = false, pressed = false, focused = false } = {}) {
       if (disposed) return;
       if (pressed) {
-        view.targetP = 0.58;
-        view.rate = 13;
+        // Slight natural creasing on click/press
+        view.targetP = 0.15;
+        view.rate = 12;
       } else if (hover) {
-        view.targetP = 0.34;
-        view.rate = 7;
+        // Subtle paper surface wrinkle (keeps all text and graphics 100% readable)
+        view.targetP = 0.08;
+        view.rate = 7.5;
       } else if (focused) {
-        view.targetP = 0.22;
+        view.targetP = 0.05;
         view.rate = 7;
       } else {
+        // Return smoothly to flat sheet
         view.targetP = REST_P;
-        view.rate = 5.5;
+        view.rate = 6;
       }
     },
     setTilt(nx, ny) {
       if (disposed) return;
-      // nx, ny in [-0.5, 0.5]; subtle paper lean toward the pointer
-      view.targetTiltY = nx * 0.26;
-      view.targetTiltX = ny * 0.18;
+      // Controlled tilt angle in range [-0.12, 0.12] radians (~7 degrees)
+      view.targetTiltY = nx * 0.22;
+      view.targetTiltX = ny * 0.16;
     },
     resetTilt() {
       if (disposed) return;
