@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const memoryStore = require("../db/memoryStore");
+import mongoose from "mongoose";
+import memoryStore from "../db/memoryStore.js";
 
 const URL_RE = /^(https?:\/\/\S+)?$/;
 
@@ -58,4 +58,4 @@ const SettingProxy = {
   },
 };
 
-module.exports = SettingProxy;
+export default SettingProxy;

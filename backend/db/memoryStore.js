@@ -1,4 +1,4 @@
-const crypto = require("crypto");
+import crypto from "crypto";
 
 const genId = () => crypto.randomBytes(12).toString("hex");
 
@@ -98,7 +98,7 @@ let settings = {
   linkedin: "",
 };
 
-module.exports = {
+export default {
   genId,
   getAnnouncements: () => announcements,
   setAnnouncements: (arr) => { announcements = arr; },

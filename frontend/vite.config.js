@@ -43,8 +43,8 @@ export default defineConfig(({ mode }) => {
       ),
     },
     build: {
-      // The Express server serves the production bundle from the repo root.
-      outDir: path.resolve(__dirname, "../dist"),
+      // The Express server serves this folder in production.
+      outDir: path.resolve(__dirname, "dist"),
       emptyOutDir: true,
     },
     server: {

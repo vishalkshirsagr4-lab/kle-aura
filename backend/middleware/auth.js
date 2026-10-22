@@ -1,7 +1,7 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 // Protects admin-only routes. Expects:  Authorization: Bearer <token>
-module.exports = function requireAdmin(req, res, next) {
+export default function requireAdmin(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
 

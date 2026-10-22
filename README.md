@@ -18,46 +18,46 @@ single Node process.
 ```
 kle-aura/
 ├── package.json          # root workspace: scripts + shared dev tooling
-├── server.ts             # unified server (Express API + Vite dev middleware)
 ├── tsconfig.json
 ├── .env.example          # every runtime variable (copy to .env)
-├── dist/                 # production bundle (generated, git-ignored)
 │
-├── backend/              # the API  (CommonJS)
-│   ├── server.js         # app + Mongo connection + /api routes
+├── backend/              # the API + the server  (ES modules)
+│   ├── server.ts         # entrypoint: serves the API + the frontend
+│   ├── app.js            # Express app + Mongo connection + /api routes
 │   ├── routes/           # auth · registrations · announcements · settings
 │   ├── models/           # mongoose schemas with in-memory fallback
 │   ├── middleware/       # admin JWT guard
 │   └── db/memoryStore.js # fallback store used when MongoDB is unreachable
 │
-├── frontend/             # the app  (ES modules)
-│   ├── index.html        # Vite entry
-│   ├── vite.config.js    # build + dev server + /api proxy
-│   ├── tailwind.config.cjs
-│   ├── postcss.config.cjs
-│   ├── .env.example
-│   ├── public/           # static assets served at /
-│   │   ├── images/       # campus, gallery, per-event posters
-│   │   ├── downloads/    # rules brochure PDF
-│   │   └── vat/          # 3D vertex-animation-texture assets
-│   └── src/
-│       ├── index.js      # React entry
-│       ├── App.js        # router (/ and /admin)
-│       ├── api.js        # fetch wrapper + admin token handling
-│       ├── styles/       # index.css (tokens) · App.css
-│       ├── components/   # UI sections
-│       │   ├── admin/    # admin dashboard pieces
-│       │   └── events/   # EventCard · ThreeDCarousel
-│       ├── pages/        # StudentPortal · AdminPortal
-│       ├── data/         # events · rules · gallery · college content
-│       ├── hooks/        # useReveal · useTilt
-│       ├── lib/          # utils.js (dates, CSV, stats)
-│       └── three/        # three.js scenes + paper-card renderer
-│
-└── scripts/
-    └── fetch-event-images.mjs   # re-download the event posters
+└── frontend/             # the app  (ES modules)
+    ├── index.html        # Vite entry
+    ├── vite.config.js    # build + dev server + /api proxy
+    ├── tailwind.config.cjs
+    ├── postcss.config.cjs
+    ├── .env.example
+    ├── dist/             # production bundle (generated, git-ignored)
+    ├── public/           # static assets served at /
+    │   ├── images/       # campus, gallery, per-event posters
+    │   ├── downloads/    # rules brochure PDF
+    │   └── vat/          # 3D vertex-animation-texture assets
+    ├── scripts/
+    │   └── fetch-event-images.mjs   # re-download the event posters
+    └── src/
+        ├── index.js      # React entry
+        ├── App.js        # router (/ and /admin)
+        ├── api.js        # fetch wrapper + admin token handling
+        ├── styles/       # index.css (tokens) · App.css
+        ├── components/   # UI sections
+        │   ├── admin/    # admin dashboard pieces
+        │   └── events/   # EventCard · ThreeDCarousel
+        ├── pages/        # StudentPortal · AdminPortal
+        ├── data/         # events · rules · gallery · college content
+        ├── hooks/        # useReveal · useTilt
+        ├── lib/          # utils.js (dates, CSV, stats)
+        └── three/        # three.js scenes + paper-card renderer
 ```
 
+The project has exactly **two source folders**: `frontend/` and `backend/`.
 `frontend/` and `backend/` are npm workspaces, so one `npm install` at the root
 installs everything into a single root `node_modules`.
 
@@ -106,12 +106,12 @@ npm run dev:web             # app  → http://localhost:3000  (/api proxied to :
 ### Production
 
 ```bash
-npm run build               # builds frontend/ → dist/
-npm start                   # NODE_ENV=production tsx server.ts
+npm run build               # builds frontend/ → frontend/dist/
+npm start                   # NODE_ENV=production tsx backend/server.ts
 ```
 
-`npm start` serves `dist/` as static files and falls back to `index.html` for
-client-side routes such as `/admin`.
+`npm start` serves `frontend/dist/` as static files and falls back to
+`index.html` for client-side routes such as `/admin`.
 
 ---
 
@@ -122,8 +122,8 @@ client-side routes such as `/admin`.
 | `npm run dev` | Unified dev server (API + Vite middleware) on `:3000` |
 | `npm run dev:web` | Vite dev server only, `/api` proxied to `:5000` |
 | `npm run dev:api` | Standalone API server on `:5000` |
-| `npm run build` | Production build of the frontend into `dist/` |
-| `npm start` | Production server (static `dist/` + API) |
+| `npm run build` | Production build of the frontend into `frontend/dist/` |
+| `npm start` | Production server (static `frontend/dist/` + API) |
 | `npm run preview` | Preview the production bundle with Vite |
 | `npm run fetch-images` | Re-download the 18 event posters from Unsplash |
 | `npm run lint` | Placeholder — no linter is configured yet |

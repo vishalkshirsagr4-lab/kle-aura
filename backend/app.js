@@ -1,9 +1,17 @@
-const path = require("path");
-const dotenv = require("dotenv");
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const dns = require("dns");
+import path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
+import dotenv from "dotenv";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dns from "dns";
+
+import registrationRoutes from "./routes/registrations.js";
+import authRoutes from "./routes/auth.js";
+import announcementRoutes from "./routes/announcements.js";
+import settingsRoutes from "./routes/settings.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // The repo-root .env is the single source of truth for every variable.
 // backend/.env is still honoured as a fallback so the API can be run on its own.
@@ -15,11 +23,6 @@ try {
 } catch (e) {
   // Sandbox environment may restrict DNS overrides
 }
-
-const registrationRoutes = require("./routes/registrations");
-const authRoutes = require("./routes/auth");
-const announcementRoutes = require("./routes/announcements");
-const settingsRoutes = require("./routes/settings");
 
 // Dev-only fallbacks. Always set real values in the repo-root .env.
 process.env.ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
@@ -75,10 +78,12 @@ app.use((err, req, res, next) => {
 // Port used when the API runs on its own (`npm run dev:api`).
 // The unified server (`npm run dev`) mounts this app on the root PORT instead.
 const PORT = Number(process.env.API_PORT || 5000);
-if (require.main === module) {
+const isDirectRun =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 API server running on http://0.0.0.0:${PORT}`);
   });
 }
 
-module.exports = app;
+export default app;

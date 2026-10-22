@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const memoryStore = require("../db/memoryStore");
+import mongoose from "mongoose";
+import memoryStore from "../db/memoryStore.js";
 
 const registrationSchema = new mongoose.Schema(
   {
@@ -108,4 +108,4 @@ RegistrationConstructor.findByIdAndDelete = async (id) => {
   return removed;
 };
 
-module.exports = RegistrationConstructor;
+export default RegistrationConstructor;

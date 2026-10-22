@@ -1,6 +1,6 @@
-const express = require("express");
-const Setting = require("../models/Setting");
-const requireAdmin = require("../middleware/auth");
+import express from "express";
+import Setting from "../models/Setting.js";
+import requireAdmin from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -57,4 +57,4 @@ router.put("/", requireAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

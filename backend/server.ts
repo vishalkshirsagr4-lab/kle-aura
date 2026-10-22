@@ -3,20 +3,21 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
-// @ts-ignore - backend/server.js is CommonJS and has no type declarations
-import backendApp from "./backend/server.js";
+// @ts-ignore - app.js is CommonJS and has no type declarations
+import backendApp from "./app.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Repo-root .env holds every runtime variable (PORT, MONGO_URI, admin login...).
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-const FRONTEND_DIR = path.resolve(__dirname, "frontend");
-const DIST_DIR = path.resolve(__dirname, "dist");
+const ROOT_DIR = path.resolve(__dirname, "..");
+const FRONTEND_DIR = path.join(ROOT_DIR, "frontend");
+const DIST_DIR = path.join(FRONTEND_DIR, "dist");
 
 async function startServer() {
-  // The API routes are already mounted on this app by backend/server.js.
+  // The API routes are already mounted on this app by app.js.
   const app = backendApp;
   const PORT = Number(process.env.PORT || 3000);
   const isProduction = process.env.NODE_ENV === "production";
@@ -33,7 +34,7 @@ async function startServer() {
     });
   } else {
     const vite = await createViteServer({
-      configFile: path.resolve(FRONTEND_DIR, "vite.config.js"),
+      configFile: path.join(FRONTEND_DIR, "vite.config.js"),
       server: { middlewareMode: true },
       appType: "spa",
       root: FRONTEND_DIR,
@@ -41,12 +42,22 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(
       `🚀 AI-AURA server running on http://0.0.0.0:${PORT} (${
         isProduction ? "production" : "development"
       })`
     );
+  });
+
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `❌ Port ${PORT} is already in use. Stop the other process or set PORT in .env.`
+      );
+      process.exit(1);
+    }
+    throw err;
   });
 }
 

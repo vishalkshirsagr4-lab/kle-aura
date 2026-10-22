@@ -9,13 +9,13 @@
     "backend"
   ],
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "tsx backend/server.ts",
     "dev:web": "npm run dev --workspace frontend",
     "dev:api": "npm run dev --workspace backend",
     "build": "npm run build --workspace frontend",
-    "start": "NODE_ENV=production tsx server.ts",
+    "start": "NODE_ENV=production tsx backend/server.ts",
     "preview": "npm run preview --workspace frontend",
-    "fetch-images": "node scripts/fetch-event-images.mjs",
+    "fetch-images": "npm run fetch-images --workspace frontend",
     "lint": "echo 'No linter configured'"
   },
   "devDependencies": {
