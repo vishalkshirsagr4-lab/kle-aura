@@ -14,5 +14,5 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true
   },
-  "include": ["backend/server.ts", "frontend/src"]
+  "include": ["server.ts", "frontend/src"]
 }

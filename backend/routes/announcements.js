@@ -1,7 +1,7 @@
-import express from "express";
-import mongoose from "mongoose";
-import Announcement from "../models/Announcement.js";
-import requireAdmin from "../middleware/auth.js";
+const express = require("express");
+const mongoose = require("mongoose");
+const Announcement = require("../models/Announcement");
+const requireAdmin = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -82,4 +82,4 @@ router.delete("/:id", requireAdmin, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

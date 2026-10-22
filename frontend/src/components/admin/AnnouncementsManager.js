@@ -12,7 +12,7 @@ import {
   X as FaXmark,
 } from "lucide-react";
 import { api } from "../../api";
-import { formatShort } from "../../lib/utils";
+import { formatShort } from "../../utils";
 
 const CATEGORY = {
   general: { Icon: FaBullhorn, label: "Update" },

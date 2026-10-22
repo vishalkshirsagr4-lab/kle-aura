@@ -14,6 +14,7 @@ import {
   Bot as FaRobot,
   PenTool as FaPenNib,
   Video as FaVideo,
+  Orbit,
   Search,
   Heart,
   Volume2,
@@ -23,6 +24,8 @@ import {
   Clock,
   Users,
   Compass,
+  Play,
+  Pause,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -30,6 +33,7 @@ import { createPortal } from "react-dom";
 import events from "../data/events";
 import { RULES, GROUPS } from "../data/rules";
 import EventCard from "./events/EventCard";
+import ThreeDCarousel from "./events/ThreeDCarousel";
 import { loadPaperAsset } from "../three/paperAsset";
 import {
   initPaperCards,
@@ -136,6 +140,7 @@ function EventExplorer({ onSelect }) {
   const [mode3d, setMode3d] = useState(
     prefersReduced() ? "fallback" : "pending",
   );
+  const [showCarousel, setShowCarousel] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -167,6 +172,24 @@ function EventExplorer({ onSelect }) {
   const backdropRef = useRef(null);
   const lightboxRef = useRef(null);
   const assetStarted = useRef(false);
+  const carouselAudioRef = useRef(null);
+
+  const playCarouselMusic = () => {
+    const playback = carouselAudioRef.current?.play();
+    playback?.catch((error) => {
+      console.warn("Could not play the 3D carousel music.", error);
+    });
+  };
+
+  const stopCarouselMusic = () => {
+    if (!carouselAudioRef.current) return;
+    carouselAudioRef.current.pause();
+    carouselAudioRef.current.currentTime = 0;
+  };
+
+  useEffect(() => () => {
+    carouselAudioRef.current?.pause();
+  }, []);
 
   const matched = new Set(
     INTERESTS.filter((i) => picked.includes(i.key)).flatMap((i) => i.ids),
@@ -419,8 +442,14 @@ function EventExplorer({ onSelect }) {
 
   return (
     <section id="events" ref={sectionRef} className="py-6 sm:py-10">
+      <audio
+        ref={carouselAudioRef}
+        src="/audio/carousel-music.mp3"
+        loop
+        preload="none"
+      />
       {/* ================= COMPACT FESTIVAL HIGHLIGHTS RIBBON ================= */}
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[0.06] via-accent/[0.04] to-cyan/[0.06] p-2.5 sm:p-3 text-center">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[0.06] via-accent/[0.04] to-cyan/[0.06] p-2.5 sm:p-3 text-center">
         <div className="flex flex-col items-center justify-center p-1">
           <span className="text-lg sm:text-2xl font-black text-primary">18</span>
           <span className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">
@@ -428,18 +457,12 @@ function EventExplorer({ onSelect }) {
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1 border-l border-border/50">
-          <span className="text-lg sm:text-2xl font-black text-accent">₹50K+</span>
-          <span className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">
-            Prizes &amp; Trophies
-          </span>
-        </div>
-        <div className="flex flex-col items-center justify-center p-1 border-t sm:border-t-0 sm:border-l border-border/50">
           <span className="text-lg sm:text-2xl font-black text-cyan">5 Tracks</span>
           <span className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">
             AI, Stage, Arts &amp; Logic
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center p-1 border-t sm:border-t-0 border-l border-border/50">
+        <div className="col-span-2 flex flex-col items-center justify-center p-1 border-t border-border/50 sm:col-span-1 sm:border-t-0 sm:border-l">
           <span className="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
             PU Colleges
           </span>
@@ -457,12 +480,37 @@ function EventExplorer({ onSelect }) {
             <span>Explore the Events</span>
           </h2>
           <p className="mt-0.5 text-xs text-muted sm:text-sm">
-            Discover 18 state-level competitions with interactive 3D cards.
           </p>
         </div>
 
-        {/* Action controls: Interactive Audio */}
+        {/* Action controls: Play 3D Showcase & Interactive Audio */}
         <div className="flex items-center gap-2">
+          {/* Play 3D Button */}
+          <button
+            type="button"
+            onClick={() => {
+              playTone(soundEnabled, "pop");
+              const next = !showCarousel;
+              setShowCarousel(next);
+              if (next && soundEnabled) playCarouselMusic();
+              else if (!next) stopCarouselMusic();
+            }}
+            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold shadow-xs transition-all duration-200 ${
+              showCarousel
+                ? "border-accent bg-accent text-white shadow-accent/25 ring-2 ring-accent/30"
+                : "border-primary/40 bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary hover:to-accent hover:text-white"
+            }`}
+            title={showCarousel ? "Close 3D View" : "Play 3D Auto-Rotating Events Showcase"}
+            aria-pressed={showCarousel}
+          >
+            {showCarousel ? (
+              <Pause className="size-3.5 fill-current" />
+            ) : (
+              <Play className="size-3.5 fill-current" />
+            )}
+            <span>{showCarousel ? "Close 3D" : "Play 3D"}</span>
+          </button>
+
           {/* Sound Toggle */}
           <button
             type="button"
@@ -470,19 +518,52 @@ function EventExplorer({ onSelect }) {
               const next = !soundEnabled;
               setSoundEnabled(next);
               playTone(next, "pop");
+              if (next && showCarousel) playCarouselMusic();
+              else if (!next) stopCarouselMusic();
             }}
             className={`grid size-8 place-items-center rounded-xl border shadow-xs transition ${
               soundEnabled
                 ? "border-accent bg-accent/15 text-accent"
                 : "border-border bg-surface text-muted hover:text-foreground"
             }`}
-            title={soundEnabled ? "Mute interactive audio" : "Enable interactive audio"}
-            aria-label={soundEnabled ? "Audio On" : "Audio Off"}
+            title={soundEnabled ? "Mute carousel music and interaction sounds" : "Enable carousel music and interaction sounds"}
+            aria-label={soundEnabled ? "Carousel music and sounds on" : "Enable carousel music and sounds"}
           >
             {soundEnabled ? <Volume2 className="size-3.5" /> : <VolumeX className="size-3.5" />}
           </button>
         </div>
       </div>
+
+      {/* ================= OPTIONAL 3D ORBIT SHOWCASE ================= */}
+      {showCarousel && (
+        <div className="mb-6 rounded-3xl border border-accent/30 bg-gradient-to-b from-primary/[0.04] to-surface p-3 sm:p-5 shadow-inner">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-accent flex items-center gap-1.5">
+              <Orbit className="size-3.5" />
+              <span>Interactive 3D Carousel Arena</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCarousel(false);
+                stopCarouselMusic();
+              }}
+              className="text-xs font-bold text-muted hover:text-foreground"
+            >
+              Close
+            </button>
+          </div>
+          <ThreeDCarousel
+            events={events}
+            rules={RULES}
+            savedIds={savedIds}
+            onToggleSave={toggleSave}
+            onPreviewPoster={setPreviewEvent}
+            onViewRules={setSheet}
+            onRegister={register}
+          />
+        </div>
+      )}
 
       {/* ================= SEARCH & SMART FILTER BAR ================= */}
       <div className="mb-3.5 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">

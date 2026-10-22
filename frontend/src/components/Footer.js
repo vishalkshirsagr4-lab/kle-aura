@@ -6,7 +6,7 @@ import {
   ShieldCheck as FaUserShield,
   Landmark as FaBuildingColumns,
 } from "lucide-react";
-import { formatShort, formatTime } from "../lib/utils";
+import { formatShort, formatTime } from "../utils";
 import { COLLEGE } from "../data/college";
 import SocialLinks from "./SocialLinks";
 import { WEBSITES } from "../data/rules";

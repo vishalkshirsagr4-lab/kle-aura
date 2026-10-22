@@ -13,9 +13,9 @@ import StickyNav from "../components/StickyNav";
 import RegistrationForm from "../components/RegistrationForm";
 import Footer from "../components/Footer";
 import { api } from "../api";
-import useTilt from "../hooks/useTilt";
+import useTilt from "../useTilt";
 import useReveal from "../hooks/useReveal";
-import { DEFAULT_INFO } from "../lib/utils";
+import { DEFAULT_INFO } from "../utils";
 
 function StudentPortal() {
   useTilt();

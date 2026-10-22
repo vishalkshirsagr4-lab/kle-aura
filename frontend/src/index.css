@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+
+  body {
+    @apply min-h-screen font-sans antialiased;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgba(79, 124, 255, 0.35);
+  }
+
+  img,
+  canvas {
+    max-width: 100%;
+    display: block;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+@layer components {
+  .section-heading {
+    @apply flex items-center gap-3 border-l-4 border-accent pl-4 text-xl font-bold tracking-tight text-foreground sm:text-2xl;
+  }
+
+  .surface-panel {
+    @apply rounded-2xl border border-border bg-surface shadow-sm;
+  }
+
+  .field-control {
+    @apply w-full rounded-xl border border-border bg-field px-4 py-3 text-foreground outline-none transition placeholder:text-muted focus:border-primary focus:ring-4 focus:ring-primary/10;
+  }
+}

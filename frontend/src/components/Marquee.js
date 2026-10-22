@@ -15,10 +15,10 @@ function Marquee() {
   });
   return (
     <div
-      className="group -mx-4 my-5 -rotate-[1.2deg] overflow-hidden bg-gradient-to-r from-obsidian via-primary to-cyan py-4 shadow-xl"
+      className="group -mx-4 my-5 overflow-hidden bg-gradient-to-r from-obsidian via-primary to-cyan py-4 shadow-xl sm:-mx-8 lg:-mx-10"
       aria-hidden="true"
     >
-      <div className="flex w-max animate-marquee motion-reduce:animate-none group-hover:[animation-play-state:paused]">
+      <div className="flex w-max items-center animate-marquee motion-reduce:animate-none group-hover:[animation-play-state:paused]">
         {row}
         {row}
       </div>

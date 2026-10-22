@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import memoryStore from "../db/memoryStore.js";
+const mongoose = require("mongoose");
+const memoryStore = require("../db/memoryStore");
 
 const announcementSchema = new mongoose.Schema(
   {
@@ -100,4 +100,4 @@ const AnnouncementProxy = {
   },
 };
 
-export default AnnouncementProxy;
+module.exports = AnnouncementProxy;

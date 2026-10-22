@@ -1,7 +1,30 @@
-import mongoose from "mongoose";
-import memoryStore from "../db/memoryStore.js";
+const mongoose = require("mongoose");
+const memoryStore = require("../db/memoryStore");
 
 const URL_RE = /^(https?:\/\/\S+)?$/;
+const SOCIAL_PLATFORMS = [
+  "Instagram",
+  "Facebook",
+  "YouTube",
+  "LinkedIn",
+  "X",
+  "Website",
+  "WhatsApp",
+  "Telegram",
+  "Threads",
+  "TikTok",
+];
+const departmentSocialSchema = new mongoose.Schema(
+  {
+    platform: { type: String, enum: SOCIAL_PLATFORMS, required: true },
+    url: {
+      type: String,
+      required: true,
+      match: [/^https?:\/\/\S+$/, "Social link must start with http:// or https://"],
+    },
+  },
+  { _id: false }
+);
 
 const settingSchema = new mongoose.Schema(
   {
@@ -24,6 +47,8 @@ const settingSchema = new mongoose.Schema(
     facebook: { type: String, trim: true, match: [URL_RE, "Facebook link must start with http:// or https://"] },
     linkedin: { type: String, trim: true, match: [URL_RE, "LinkedIn link must start with http:// or https://"] },
     website: { type: String, trim: true, match: [URL_RE, "Website link must start with http:// or https://"] },
+    bcaSocials: { type: [departmentSocialSchema], default: undefined },
+    bbaSocials: { type: [departmentSocialSchema], default: undefined },
   },
   { timestamps: true }
 );
@@ -58,4 +83,4 @@ const SettingProxy = {
   },
 };
 
-export default SettingProxy;
+module.exports = SettingProxy;

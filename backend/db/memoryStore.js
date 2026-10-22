@@ -1,4 +1,4 @@
-import crypto from "crypto";
+const crypto = require("crypto");
 
 const genId = () => crypto.randomBytes(12).toString("hex");
 
@@ -9,16 +9,16 @@ let announcements = [
     title: "AI-AURA 2K26 Registrations Open!",
     message: "Welcome to AI-AURA 2K26 - A State Level Tech & Cultural Talent Hunt for PUC students. Explore 18 competitive events and register today!",
     category: "important",
-    date: "2026-11-06",
+    date: "2026-11-04",
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
     updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
   },
   {
     _id: "507f191e810c19729de860eb",
     title: "Event Date & Venue Announced",
-    message: "The mega event will be held on 6th November 2026 at KLE Society's BCA & BBA College, Mahalingpur. Free food & transport assistance provided.",
+    message: "The mega event will be held on 4th November 2026 at KLE Society's BCA & BBA College, Mahalingpur. Free food & transport assistance provided.",
     category: "date",
-    date: "2026-11-06",
+    date: "2026-11-04",
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
     updatedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
   },
@@ -27,7 +27,7 @@ let announcements = [
     title: "Exciting Cash Prizes & Free Certificate Courses",
     message: "Trophies, certificates, and exciting cash prizes for winners. All participants receive digital certificates and workshop entry.",
     category: "general",
-    date: "2026-11-06",
+    date: "2026-11-04",
     createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
     updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
   },
@@ -87,7 +87,7 @@ let registrations = [
 
 let settings = {
   key: "main",
-  eventDate: "2026-11-06",
+  eventDate: "2026-11-04",
   startTime: "09:00",
   endTime: "17:00",
   venue: "KLE Society's BCA & BBA College, Mahalingpur",
@@ -96,9 +96,16 @@ let settings = {
   youtube: "",
   facebook: "",
   linkedin: "",
+  bcaSocials: [
+    {
+      platform: "Instagram",
+      url: "https://www.instagram.com/kle_bba_mahalingapur/",
+    },
+  ],
+  bbaSocials: [{ platform: "X", url: "https://x.com/klebbamlp2026" }],
 };
 
-export default {
+module.exports = {
   genId,
   getAnnouncements: () => announcements,
   setAnnouncements: (arr) => { announcements = arr; },

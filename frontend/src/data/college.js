@@ -1,9 +1,39 @@
-import { BadgeCheck as FaCertificate, Presentation as FaChalkboardUser, Laptop as FaLaptopCode, Briefcase as FaBriefcase, User as FaUserTie, Trophy as FaTrophy } from "lucide-react";
+import {
+  BadgeCheck as FaCertificate,
+  Presentation as FaChalkboardUser,
+  Laptop as FaLaptopCode,
+  Briefcase as FaBriefcase,
+  User as FaUserTie,
+  Trophy as FaTrophy,
+  Instagram,
+  Youtube,
+  Facebook,
+  Linkedin,
+  X,
+  Globe,
+  MessageCircle,
+  Send,
+  AtSign,
+  Music2,
+} from "lucide-react";
 
 export const COLLEGE = {
   name: "KLE BCA & BBA College",
   place: "Mahalingpur",
 };
+
+export const SOCIAL_PLATFORMS = [
+  { name: "Instagram", Icon: Instagram, placeholder: "https://instagram.com/your-account" },
+  { name: "Facebook", Icon: Facebook, placeholder: "https://facebook.com/your-page" },
+  { name: "YouTube", Icon: Youtube, placeholder: "https://youtube.com/@your-channel" },
+  { name: "LinkedIn", Icon: Linkedin, placeholder: "https://linkedin.com/company/your-page" },
+  { name: "X", Icon: X, placeholder: "https://x.com/your-account" },
+  { name: "Website", Icon: Globe, placeholder: "https://your-website.com" },
+  { name: "WhatsApp", Icon: MessageCircle, placeholder: "https://wa.me/your-number" },
+  { name: "Telegram", Icon: Send, placeholder: "https://t.me/your-channel" },
+  { name: "Threads", Icon: AtSign, placeholder: "https://www.threads.net/@your-account" },
+  { name: "TikTok", Icon: Music2, placeholder: "https://www.tiktok.com/@your-account" },
+];
 
 export const FACILITIES = [
   {

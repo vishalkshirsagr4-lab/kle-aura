@@ -1,6 +1,6 @@
-import express from "express";
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
+const express = require("express");
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -52,4 +52,4 @@ router.post("/login", (req, res) => {
   res.json({ success: true, token });
 });
 
-export default router;
+module.exports = router;

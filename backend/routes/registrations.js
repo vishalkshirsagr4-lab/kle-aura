@@ -1,7 +1,7 @@
-import express from "express";
-import mongoose from "mongoose";
-import Registration from "../models/Registration.js";
-import requireAdmin from "../middleware/auth.js";
+const express = require("express");
+const mongoose = require("mongoose");
+const Registration = require("../models/Registration");
+const requireAdmin = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -106,4 +106,4 @@ router.delete("/:id", requireAdmin, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
