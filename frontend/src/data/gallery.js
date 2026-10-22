@@ -15,5 +15,5 @@ export const PHOTOS = [
   { id: "certs", img: G + "students-certificates.jpg", caption: "Students proudly holding their certificates in front of the college", wide: true },
   { id: "group", img: G + "students-group.jpg", caption: "Students in professional attire at the college entrance", wide: true },
   { id: "work", img: G + "students-project-work.jpg", caption: "Students working together on laptops in the college library corridor" },
-  { id: "poster", img: G + "ai-aura-poster.jpg", caption: "AI-AURA 2K26: a talent hunt for PU students", wide: true },
+  { id: "poster", img: G + "ai-aura-poster-updated.png", caption: "AI-AURA 2K26: a talent hunt for PU students", wide: true },
 ];

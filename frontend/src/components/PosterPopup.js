@@ -5,6 +5,10 @@ function PosterPopup() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    setOpen(true);
+  }, []);
+
+  useEffect(() => {
     const openPoster = () => setOpen(true);
     window.addEventListener("aura:open-poster", openPoster);
     return () => window.removeEventListener("aura:open-poster", openPoster);
@@ -12,6 +16,7 @@ function PosterPopup() {
 
   useEffect(() => {
     if (!open) return undefined;
+    const autoClose = window.setTimeout(() => setOpen(false), 10000);
     const onKeyDown = (event) => {
       if (event.key === "Escape") setOpen(false);
     };
@@ -19,6 +24,7 @@ function PosterPopup() {
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.clearTimeout(autoClose);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
@@ -49,8 +55,8 @@ function PosterPopup() {
         </button>
         <img
           className="block max-h-[74vh] w-full object-contain"
-          src="/images/gallery/ai-aura-poster.jpg"
-          alt="AI-AURA 2K26 – A Talent Hunt for PU Students"
+          src="/images/gallery/ai-aura-poster-updated.png"
+          alt="AI-AURA 2K26 updated festival poster"
         />
         <a
           className="mx-auto my-3 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-primary transition hover:bg-indigo-50"

@@ -1,7 +1,7 @@
 import events from "./data/events";
 
 export const DEFAULT_INFO = {
-  eventDate: "2026-11-06",
+  eventDate: "2026-11-04",
   startTime: "09:00",
   endTime: "17:00",
   venue: "KLE Society's BCA & BBA College, Mahalingpur",
@@ -10,6 +10,13 @@ export const DEFAULT_INFO = {
   facebook: "",
   linkedin: "",
   website: "https://www.klebcamahalingpur.com",
+  bcaSocials: [
+    {
+      platform: "Instagram",
+      url: "https://www.instagram.com/kle_bba_mahalingapur/",
+    },
+  ],
+  bbaSocials: [{ platform: "X", url: "https://x.com/klebbamlp2026" }],
 };
 
 const parseISO = (iso) => {

@@ -1,0 +1,146 @@
+:root {
+  color-scheme: light;
+  --primary: #4f46e5;
+  --accent: #7c3aed;
+  --cyan: #0891b2;
+  --navy: #172554;
+  --obsidian: #101828;
+  --dark: #4338ca;
+  --mid: #4f46e5;
+  --bg: #f7f8fc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --field: #ffffff;
+  --text: #172033;
+  --muted: #64748b;
+  --shadow: rgba(15, 23, 42, 0.09);
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --error: #dc2626;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --dark: #a5b4fc;
+  --mid: #818cf8;
+  --bg: #0b1020;
+  --surface: #121a2b;
+  --border: rgba(148, 163, 184, 0.18);
+  --field: #0f1728;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(55rem 30rem at 0% 0%, rgba(99, 102, 241, 0.07), transparent 62%),
+    radial-gradient(48rem 32rem at 100% 12%, rgba(124, 58, 237, 0.05), transparent 60%);
+}
+
+html[data-theme="dark"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 10%, transparent 75%);
+}
+
+svg.lucide {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(79, 70, 229, 0.45);
+  outline-offset: 3px;
+}
+
+.tilt {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition:
+    transform 0.15s ease-out,
+    border-color 0.25s,
+    box-shadow 0.25s,
+    background-color 0.25s;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.tilt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--gx, 50%) var(--gy, 50%),
+    rgba(255, 255, 255, 0.4),
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.tilt:hover::after {
+  opacity: 1;
+}
+
+.event-card {
+  transform-style: preserve-3d;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .event-card--fallback {
+    transition:
+      transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 240ms ease;
+  }
+
+  .event-card--fallback:hover {
+    transform: perspective(900px) rotateX(var(--card-rx, 0deg))
+      rotateY(var(--card-ry, 0deg)) translateY(-4px) rotate(-0.3deg)
+      scale(1.015);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.18);
+  }
+
+  .event-card--3d:hover {
+    transform: perspective(900px) rotateX(var(--card-rx, 0deg))
+      rotateY(var(--card-ry, 0deg)) scale(1.015);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .event-card {
+    transition-duration: 160ms;
+  }
+
+  .event-card--3d:active {
+    scale: 0.985;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

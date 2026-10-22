@@ -1,6 +1,6 @@
 # AI-AURA — PUC College Event Website (MERN)
 
-Event date: 6 November 2026 (Friday) · 18 events · PUC students only.
+Event date: 4 November 2026 (Wednesday) · 18 events · PUC students only.
 
 ## Two portals
 - **Student portal** — http://localhost:3000
@@ -55,7 +55,7 @@ as the frontend; the `localhost:5000` proxy is for local development.
 - Expert Seminars slider (auto-slides every 10s, swipe/arrows/dots) and Campus Moments photos (`components/CollegeGallery.js`, `data/gallery.js`, images in `public/images/gallery/`).
 
 - Rules & Regulations section (`components/RulesSection.js`, `data/rules.js`): all 18 events with rules, filters, general rules, prizes, contacts, PDF download (`public/downloads/`), Google Drive link and both college websites (klebcamahalingpur.com, klebbamahalingpur.com).
-- Default event date is now 6 Nov 2026 (as per the brochure). The admin can still change it.
+- Default event date is now 4 Nov 2026 (as per the updated poster). The admin can still change it.
 
 - Impact redesign: sticky nav with scroll progress, moving event ribbon, animated counters, scroll-reveal animations, "Find your event" picker, colourful event tiles that open a swipeable rules sheet (`components/EventExplorer.js`, `StickyNav.js`, `Marquee.js`, `StatsBand.js`).
 
