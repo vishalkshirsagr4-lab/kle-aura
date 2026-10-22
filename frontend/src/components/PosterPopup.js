@@ -10,6 +10,14 @@ function PosterPopup() {
     return () => window.removeEventListener("aura:open-poster", openPoster);
   }, []);
 
+  // Auto-show like an ad every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOpen(true);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (!open) return undefined;
     const onKeyDown = (event) => {
