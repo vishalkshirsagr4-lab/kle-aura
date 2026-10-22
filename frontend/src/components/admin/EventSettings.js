@@ -13,7 +13,7 @@ import {
   Globe as FaGlobe,
 } from "lucide-react";
 import { api } from "../../api";
-import { DEFAULT_INFO } from "../../utils";
+import { DEFAULT_INFO } from "../../lib/utils";
 
 const SOCIAL_FIELDS = [
   {

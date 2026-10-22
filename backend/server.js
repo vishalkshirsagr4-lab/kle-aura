@@ -1,8 +1,14 @@
-require("dotenv").config();
+const path = require("path");
+const dotenv = require("dotenv");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dns = require("dns");
+
+// The repo-root .env is the single source of truth for every variable.
+// backend/.env is still honoured as a fallback so the API can be run on its own.
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 try {
   dns.setServers(["8.8.8.8", "8.8.4.4"]);
@@ -15,7 +21,7 @@ const authRoutes = require("./routes/auth");
 const announcementRoutes = require("./routes/announcements");
 const settingsRoutes = require("./routes/settings");
 
-// Default credentials if not supplied via env
+// Dev-only fallbacks. Always set real values in the repo-root .env.
 process.env.ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 process.env.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "ai-aura-dev-secret-key-2026";
@@ -66,10 +72,12 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-const PORT = process.env.PORT || 3000;
+// Port used when the API runs on its own (`npm run dev:api`).
+// The unified server (`npm run dev`) mounts this app on the root PORT instead.
+const PORT = Number(process.env.API_PORT || 5000);
 if (require.main === module) {
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 API server running on http://0.0.0.0:${PORT}`);
   });
 }
 

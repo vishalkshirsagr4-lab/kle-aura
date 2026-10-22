@@ -1,8 +1,10 @@
 import fs from "fs";
 import path from "path";
 import https from "https";
+import { fileURLToPath } from "url";
 
-const OUT_DIR = path.resolve("./frontend/public/images/events");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OUT_DIR = path.resolve(__dirname, "../frontend/public/images/events");
 if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 }

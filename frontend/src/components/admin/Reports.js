@@ -8,7 +8,7 @@ import {
   Download as FaDownload,
   Printer as FaPrint,
 } from "lucide-react";
-import { downloadCSV, formatShort } from "../../utils";
+import { downloadCSV, formatShort } from "../../lib/utils";
 
 function buildReports(regs, stats) {
   return [

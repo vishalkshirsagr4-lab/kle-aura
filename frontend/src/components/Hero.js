@@ -8,9 +8,9 @@ import {
   MapPin as FaLocationDot,
   Image as FaImage,
 } from "lucide-react";
-import { formatDash, eventStart } from "../utils";
+import { formatDash, eventStart } from "../lib/utils";
 import { COLLEGE } from "../data/college";
-import { createHeroScene } from "../scenes3d";
+import { createHeroScene } from "../three/scenes3d";
 import SocialLinks from "./SocialLinks";
 
 function getTimeLeft(start) {
@@ -78,7 +78,7 @@ function Hero({ info }) {
           className="absolute inset-0 z-0 overflow-hidden [perspective:900px] [perspective-origin:50%_40%]"
           aria-hidden="true"
         >
-          <span className="absolute -inset-[5%] bg-[url('../public/images/campus.jpg')] bg-cover bg-center opacity-70 [transform-style:preserve-3d] [transform:rotateX(calc(var(--py)*-4deg))_rotateY(calc(var(--px)*6deg))_translate3d(calc(var(--px)*-10px),calc(var(--py)*-6px),0)_scale(1.04)] transition-transform duration-300 after:absolute after:inset-0 after:bg-gradient-to-r after:from-[#101828]/95 after:via-[#101828]/80 after:to-[#172554]/55" />
+          <span className="absolute -inset-[5%] bg-[url('/images/campus.jpg')] bg-cover bg-center opacity-70 [transform-style:preserve-3d] [transform:rotateX(calc(var(--py)*-4deg))_rotateY(calc(var(--px)*6deg))_translate3d(calc(var(--px)*-10px),calc(var(--py)*-6px),0)_scale(1.04)] transition-transform duration-300 after:absolute after:inset-0 after:bg-gradient-to-r after:from-[#101828]/95 after:via-[#101828]/80 after:to-[#172554]/55" />
         </span>
         <canvas
           ref={canvasRef}

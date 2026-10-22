@@ -13,7 +13,7 @@ import {
   Info as FaCircleInfo,
 } from "lucide-react";
 import { api } from "../../api";
-import { buildStats } from "../../utils";
+import { buildStats } from "../../lib/utils";
 import Overview from "./Overview";
 import RegistrationsTable from "./RegistrationsTable";
 import Reports from "./Reports";

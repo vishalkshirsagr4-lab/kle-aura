@@ -1,4 +1,4 @@
-import events from "./data/events";
+import events from "../data/events";
 
 export const DEFAULT_INFO = {
   eventDate: "2026-11-06",

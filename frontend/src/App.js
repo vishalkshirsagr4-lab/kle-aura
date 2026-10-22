@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import StudentPortal from "./pages/StudentPortal";
 import AdminPortal from "./pages/AdminPortal";
 import ThemeToggle from "./components/ThemeToggle";
-import "./App.css";
+import "./styles/App.css";
 
 function App() {
   return (

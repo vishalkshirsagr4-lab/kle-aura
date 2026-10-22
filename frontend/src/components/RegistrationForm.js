@@ -15,7 +15,7 @@ import {
   Users as FaPeopleGroup,
 } from "lucide-react";
 import events from "../data/events";
-import { formatShort, formatTime } from "../utils";
+import { formatShort, formatTime } from "../lib/utils";
 
 const initialState = {
   fullname: "",

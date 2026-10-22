@@ -3,7 +3,7 @@ import {
   CalendarDays as FaCalendarDays,
   AlertTriangle as FaTriangleExclamation,
 } from "lucide-react";
-import { formatShort } from "../utils";
+import { formatShort } from "../lib/utils";
 
 const CATEGORY = {
   general: { Icon: FaBullhorn, label: "Update" },

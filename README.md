@@ -1,96 +1,204 @@
-# AI-AURA — PUC College Event Website (MERN)
+# AI-AURA — PUC College Event Website
 
-Event date: 6 November 2026 (Friday) · 18 events · PUC students only.
+Event date: **6 November 2026** · 18 events · PUC students only.
 
-## Two portals
+React 18 + Vite 5 frontend, Express 4 + MongoDB API, served together by a
+single Node process.
+
 - **Student portal** — http://localhost:3000
-  Event list, announcements, countdown, registration form (with optional team name).
+  Event explorer, announcements, countdown, 3D event cards, rules, registration form.
 - **Admin portal** — http://localhost:3000/admin
-  Login, dashboard counts (students, teams, colleges), registrations table, reports
-  (CSV download + print/PDF), announcements and event date/time/venue.
+  Login, dashboard counts, registrations table, reports (CSV + print/PDF),
+  announcements and event date/time/venue.
 
-Admin login is set in `backend/.env`:
+---
+
+## Repository layout
+
 ```
-ADMIN_USERNAME=SachinRS@143
-ADMIN_PASSWORD=Irana@123
-JWT_SECRET=...change this to a long random string...
+kle-aura/
+├── package.json          # root workspace: scripts + shared dev tooling
+├── server.ts             # unified server (Express API + Vite dev middleware)
+├── tsconfig.json
+├── .env.example          # every runtime variable (copy to .env)
+├── dist/                 # production bundle (generated, git-ignored)
+│
+├── backend/              # the API  (CommonJS)
+│   ├── server.js         # app + Mongo connection + /api routes
+│   ├── routes/           # auth · registrations · announcements · settings
+│   ├── models/           # mongoose schemas with in-memory fallback
+│   ├── middleware/       # admin JWT guard
+│   └── db/memoryStore.js # fallback store used when MongoDB is unreachable
+│
+├── frontend/             # the app  (ES modules)
+│   ├── index.html        # Vite entry
+│   ├── vite.config.js    # build + dev server + /api proxy
+│   ├── tailwind.config.cjs
+│   ├── postcss.config.cjs
+│   ├── .env.example
+│   ├── public/           # static assets served at /
+│   │   ├── images/       # campus, gallery, per-event posters
+│   │   ├── downloads/    # rules brochure PDF
+│   │   └── vat/          # 3D vertex-animation-texture assets
+│   └── src/
+│       ├── index.js      # React entry
+│       ├── App.js        # router (/ and /admin)
+│       ├── api.js        # fetch wrapper + admin token handling
+│       ├── styles/       # index.css (tokens) · App.css
+│       ├── components/   # UI sections
+│       │   ├── admin/    # admin dashboard pieces
+│       │   └── events/   # EventCard · ThreeDCarousel
+│       ├── pages/        # StudentPortal · AdminPortal
+│       ├── data/         # events · rules · gallery · college content
+│       ├── hooks/        # useReveal · useTilt
+│       ├── lib/          # utils.js (dates, CSV, stats)
+│       └── three/        # three.js scenes + paper-card renderer
+│
+└── scripts/
+    └── fetch-event-images.mjs   # re-download the event posters
 ```
-Username is not case-sensitive; the password is. Change these before going live.
 
-## How to Run
-1. Start MongoDB locally:  `mongod`
-2. Backend:
-   ```
-   cd backend
-   npm install
-   npm run dev        # http://localhost:5000
-   ```
-3. Frontend (new terminal):
-   ```
-   cd frontend
-   npm install
-   npm start          # http://localhost:3000
-   ```
-4. Student portal: http://localhost:3000 · Admin portal: http://localhost:3000/admin
+`frontend/` and `backend/` are npm workspaces, so one `npm install` at the root
+installs everything into a single root `node_modules`.
 
-## Frontend API configuration and deployment
-The frontend reads `REACT_APP_API_URL` from `frontend/.env` and prefixes it to
-API requests. The local value is `http://localhost:5000`, matching the backend
-development server. `frontend/.env` is ignored by Git; use the committed
-`frontend/.env.example` as the template for other environments.
+---
 
-For deployment, configure `REACT_APP_API_URL` in the frontend host's build
-environment (for example, the backend's public origin such as
-`https://api.example.com`) and trigger a new frontend build. Create React App
-embeds `REACT_APP_*` values at build time, so changing the hosting variable does
-not update an already-built frontend. The value is public in the browser bundle:
-put only the backend origin here, never credentials, JWT secrets, or database
-URLs. Set it to an empty string only when the API is served from the same origin
-as the frontend; the `localhost:5000` proxy is for local development.
+## Requirements
 
-## What's new
-- 18 talent events (Quiz, Dance, Pencil Sketch ... Solo Instrumental), each with a React Icon (`frontend/src/data/events.js`).
-- Event poster dialog for AI-AURA 2K26 (`components/PosterPopup.js`): open it with **View poster** in the hero; it no longer interrupts visitors automatically.
-- College photo as a 3D tilting background in the top banner (`components/Hero.js`).
-- Expert Seminars slider (auto-slides every 10s, swipe/arrows/dots) and Campus Moments photos (`components/CollegeGallery.js`, `data/gallery.js`, images in `public/images/gallery/`).
+- Node.js 18+ (developed on Node 24)
+- MongoDB — optional. Without it the API falls back to an in-memory store.
 
-- Rules & Regulations section (`components/RulesSection.js`, `data/rules.js`): all 18 events with rules, filters, general rules, prizes, contacts, PDF download (`public/downloads/`), Google Drive link and both college websites (klebcamahalingpur.com, klebbamahalingpur.com).
-- Default event date is now 6 Nov 2026 (as per the brochure). The admin can still change it.
+---
 
-- Impact redesign: sticky nav with scroll progress, moving event ribbon, animated counters, scroll-reveal animations, "Find your event" picker, colourful event tiles that open a swipeable rules sheet (`components/EventExplorer.js`, `StickyNav.js`, `Marquee.js`, `StatsBand.js`).
+## Setup
 
-- Design system: Electric Indigo #4F46E5, Violet #8B5CF6, Cyan #06B6D4, Navy #0F172A on Soft White #F8FAFC, Inter font, Lucide icons (`lucide-react`), light theme by default with a working dark mode toggle (bottom-right button, remembered on the device). Colour tokens live at the top of `frontend/src/App.css`.
-- Admin Overview now has a registrations-over-time chart built from real registration dates.
+```bash
+npm install                 # installs both workspaces
+cp .env.example .env        # then edit .env
+```
 
-- Obsidian identity (dark by default, light optional): Obsidian #0B0D12, Midnight Navy #111827, Electric Blue #4F7CFF, Vivid Violet #8B5CF6, Neon Cyan #36E4FF, Soft White #F5F7FF, Muted #9CA3AF. Tokens at the top of `frontend/src/App.css`.
-- Live registration pop-ups (`components/LiveRegistrations.js`): rotate through the latest real registrations (first name + college + event only) using the public `GET /api/registrations/recent`. Nothing shows when there are no registrations. Email, phone and roll number are never exposed.
-- After a successful registration a confirmation modal appears. The old text promised an email, but the backend sends none, so the message was corrected.
+Fill in `.env` (see [Environment variables](#environment-variables)). At minimum
+set `MONGO_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` and `JWT_SECRET`.
 
-## 3D
-Real WebGL 3D (three.js, installed by `npm install`): floating 3D shapes behind the hero title,
-a drag-to-rotate 3D campus panel with your photo, 3D extruded title, and cards that lean toward
-the pointer. If a device has no WebGL, the site falls back to a flat tilt card automatically.
-Code: `frontend/src/scenes3d.js`.
+The API reads the **repo-root `.env`** no matter which directory it is started
+from, so the same file works for every run mode.
 
-## Make it yours
-- **College photo:** your photo is already at `frontend/public/images/campus.jpg`. It shows in the
-  3D campus card, the *Clear view* (normal, uncropped photo) and as the hero background.
-  To use a sharper photo, replace that file (keep the name `campus.jpg`).
-- **Social links:** log in to /admin → *Event info* → fill Instagram / YouTube / Facebook / LinkedIn /
-  Website. They appear on the student portal instantly (blank links stay hidden).
-- **Certificate courses:** the semester lists in `frontend/src/data/college.js` are *sample entries* —
-  replace them with the courses your college actually runs.
+---
 
-## Notes
-- Icons come from `react-icons` (Font Awesome 6 set), installed by `npm install`.
-- A "team" = students registering for the same event with the same team name.
-- "Students" counts unique email addresses; "Colleges" counts unique college names.
+## Running
+
+### Everything on one port (recommended)
+
+```bash
+npm run dev                 # http://localhost:3000
+```
+
+Express serves the API and mounts Vite as middleware, so the frontend and the
+API share an origin — no CORS, no proxy, no extra config.
+
+### Frontend and API separately
+
+```bash
+npm run dev:api             # API  → http://localhost:5000
+npm run dev:web             # app  → http://localhost:3000  (/api proxied to :5000)
+```
+
+### Production
+
+```bash
+npm run build               # builds frontend/ → dist/
+npm start                   # NODE_ENV=production tsx server.ts
+```
+
+`npm start` serves `dist/` as static files and falls back to `index.html` for
+client-side routes such as `/admin`.
+
+---
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Unified dev server (API + Vite middleware) on `:3000` |
+| `npm run dev:web` | Vite dev server only, `/api` proxied to `:5000` |
+| `npm run dev:api` | Standalone API server on `:5000` |
+| `npm run build` | Production build of the frontend into `dist/` |
+| `npm start` | Production server (static `dist/` + API) |
+| `npm run preview` | Preview the production bundle with Vite |
+| `npm run fetch-images` | Re-download the 18 event posters from Unsplash |
+| `npm run lint` | Placeholder — no linter is configured yet |
+
+---
+
+## Environment variables
+
+All variables live in the repo-root `.env` (`.env.example` is the template).
+
+| Variable | Default | Used by | Meaning |
+|---|---|---|---|
+| `PORT` | `3000` | unified server | Port for the combined app |
+| `API_PORT` | `5000` | standalone API | Port when the API runs on its own |
+| `MONGO_URI` | — | API | MongoDB connection string. Empty ⇒ in-memory store |
+| `ADMIN_USERNAME` | `admin` | API | Admin login (case-insensitive) |
+| `ADMIN_PASSWORD` | `admin123` | API | Admin password (case-**sensitive**) |
+| `JWT_SECRET` | dev fallback | API | Signing secret — set a long random value |
+| `REACT_APP_API_URL` | *(empty)* | frontend | Backend origin baked into the bundle |
+| `VITE_PROXY_TARGET` | `http://localhost:5000` | frontend | Where the dev server proxies `/api` |
+| `GEMINI_API_KEY` | — | — | Optional |
+
+### About `REACT_APP_API_URL`
+
+The value is inlined into the browser bundle at build time, so it is **public** —
+put only the backend origin here, never credentials, a JWT secret or a database
+URL.
+
+- Leave it **empty** when the API is served from the same origin as the frontend
+  (the unified server, or the dev proxy).
+- Set it to the backend origin (for example `https://api.example.com`) when the
+  two are deployed separately. Changing it requires a **new frontend build**.
+
+The frontend also reads `frontend/.env` (see `frontend/.env.example`) for local
+overrides.
+
+---
 
 ## API
+
 | Method | Route | Access |
 |---|---|---|
-| POST | /api/registrations | public |
-| GET / DELETE | /api/registrations | admin |
-| POST | /api/auth/login | public |
-| GET | /api/announcements, /api/settings | public |
-| POST / PUT / DELETE | /api/announcements, PUT /api/settings | admin |
+| POST | `/api/registrations` | public |
+| GET · DELETE | `/api/registrations` | admin |
+| GET | `/api/registrations/recent` | public (first name + college + event only) |
+| POST | `/api/auth/login` | public |
+| GET | `/api/announcements` · `/api/settings` | public |
+| POST · PUT · DELETE | `/api/announcements` | admin |
+| PUT | `/api/settings` | admin |
+| GET | `/api/health` | public |
+
+The admin token is stored in `sessionStorage` and sent as
+`Authorization: Bearer <token>`.
+
+---
+
+## Admin login
+
+Set `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `.env` and open `/admin`.
+The username is case-insensitive; the password is not. Change both (and
+`JWT_SECRET`) before going live.
+
+---
+
+## Notes
+
+- **Fallback store** — when MongoDB cannot be reached the API answers from an
+  in-memory store so the site still works; the data is lost on restart.
+- **3D** — real WebGL via three.js (hero scene, paper-style event cards, card
+  tilt). Devices without WebGL fall back to a flat layout automatically.
+  Code lives in `frontend/src/three/`.
+- **Content** — event/rule/gallery data lives in `frontend/src/data/`. Replace
+  the sample course lists in `data/college.js` with your real ones.
+- **College photo** — `frontend/public/images/campus.jpg` is used by the 3D
+  campus card, the hero background and the college section. Keep the filename.
+- **Social links** — set them in `/admin → Event info`; blank links stay hidden.
+- A **team** = students registering for the same event with the same team name.
+  "Students" counts unique emails, "Colleges" counts unique college names.
