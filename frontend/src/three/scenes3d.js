@@ -143,7 +143,6 @@ export function createHeroScene(canvas) {
     });
   };
   window.addEventListener("resize", layout);
-  layout();
 
   const frame = (t) => {
     items.forEach((m) => {
@@ -163,7 +162,21 @@ export function createHeroScene(canvas) {
     renderer.render(scene, camera);
   };
 
-  const stop = reducedMotion() ? (frame(0), () => {}) : startLoop(canvas, frame);
+  let stop;
+  if (reducedMotion()) {
+    // Static scene: draw once, and redraw on resize so the canvas never
+    // keeps a stale (blank or stretched) frame after a layout change.
+    const drawStatic = () => {
+      layout();
+      frame(0);
+    };
+    window.addEventListener("resize", drawStatic);
+    drawStatic();
+    stop = () => window.removeEventListener("resize", drawStatic);
+  } else {
+    layout();
+    stop = startLoop(canvas, frame);
+  }
 
   return () => {
     stop();

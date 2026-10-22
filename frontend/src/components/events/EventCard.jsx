@@ -138,11 +138,14 @@ export default function EventCard({
   const handleRef = useRef(null);
   const hoverRef = useRef(false);
   const pressRef = useRef(false);
+  const dimmedRef = useRef(dimmed);
   const [threeReady, setThreeReady] = useState(false);
   const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
   const [copied, setCopied] = useState(false);
 
   const ink = GROUP_INK[rule?.group] || event?.accentColor || "#4f46e5";
+
+  dimmedRef.current = dimmed;
 
   const sync = () => {
     handleRef.current?.setInteraction({
@@ -170,6 +173,7 @@ export default function EventCard({
     }
 
     handleRef.current = handle;
+    handle.setDim(dimmedRef.current);
     setThreeReady(true);
 
     return () => {
@@ -185,6 +189,13 @@ export default function EventCard({
       handleRef.current = null;
     };
   }, []);
+
+  // Keep the WebGL paper sheet in sync with the card's dimmed state. The
+  // shared canvas sits outside the DOM card, so CSS opacity alone cannot
+  // dim it — the material must be faded too.
+  useEffect(() => {
+    handleRef.current?.setDim(dimmed);
+  }, [dimmed]);
 
   const onPointerEnter = (e) => {
     hoverRef.current = true;

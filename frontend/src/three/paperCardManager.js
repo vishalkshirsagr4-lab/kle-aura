@@ -73,6 +73,7 @@ function makeCore(animData) {
     raf: 0,
     running: false,
     layoutDirty: true,
+    pendingFullClear: false,
     failHandlers: new Set(),
   };
 
@@ -177,7 +178,14 @@ function tick(state, now) {
     state.layoutDirty = true;
   }
 
-  let rendered = false;
+  // A view whose rect moved, or that disappears (filter relayout, unmount,
+  // scrolled away without a scroll event) leaves its old pixels behind:
+  // scissored renders only clear their own rect. Collect the frame first so
+  // a full-canvas wipe can force a repaint of every visible card.
+  let fullClear = state.layoutDirty || state.pendingFullClear;
+  state.pendingFullClear = false;
+  const candidates = [];
+
   for (const view of views) {
     // --- animate crumple + tilt ---
     const prevP = view.p;
@@ -226,7 +234,11 @@ function tick(state, now) {
     }
 
     // --- visibility + layout ---
-    if (!view.visible) continue;
+    const wasDrawn = !!view.rw;
+    if (!view.visible) {
+      if (wasDrawn) fullClear = true;
+      continue;
+    }
     const el = view.el;
     const rect = el.getBoundingClientRect();
     if (
@@ -237,6 +249,7 @@ function tick(state, now) {
       rect.right < -10 ||
       rect.left > vw + 10
     ) {
+      if (wasDrawn) fullClear = true;
       continue;
     }
 
@@ -247,20 +260,33 @@ function tick(state, now) {
 
     const moved =
       view.rl !== left || view.rb !== b || view.rw !== w || view.rh !== h;
+    if (moved && wasDrawn) fullClear = true;
 
-    const needsRender =
-      animatingP ||
-      animatingT ||
-      !view.rendered ||
-      state.layoutDirty ||
-      moved;
-    if (!needsRender) continue;
+    candidates.push({
+      view,
+      left,
+      b,
+      w,
+      h,
+      force:
+        animatingP || animatingT || !view.rendered || moved,
+    });
+  }
+
+  if (fullClear) {
+    // wipe every stale card rect, then repaint all visible cards
+    renderer.setScissorTest(false);
+    renderer.clear();
+  }
+
+  let rendered = false;
+  for (const { view, left, b, w, h, force } of candidates) {
+    if (!force && !fullClear) continue;
 
     const aspect = w / Math.max(h, 1);
     if (Math.abs(aspect - view.camera.aspect) > 0.005) {
       fitCamera(view.camera, aspect);
     }
-
     renderer.setViewport(left, b, w, h);
     renderer.setScissor(left, b, w, h);
     renderer.setScissorTest(true);
@@ -273,7 +299,7 @@ function tick(state, now) {
     rendered = true;
   }
 
-  if (rendered) {
+  if (rendered || fullClear) {
     renderer.setScissorTest(false);
     state.layoutDirty = false;
   }
@@ -306,6 +332,12 @@ function disposeView(view) {
   view.geometry.dispose();
   view.shadowMesh?.geometry?.dispose();
   view.shadowMesh?.material?.dispose();
+  // A card that unmounts mid-lifecycle leaves its last paper frame on the
+  // shared canvas — wipe everything on the next tick.
+  if (view.rw && core) core.pendingFullClear = true;
+  view.rw = 0;
+  view.rh = 0;
+  view.rendered = false;
   core?.views.delete(view);
   core?.failHandlers.delete(view.onFail);
 }
