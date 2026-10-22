@@ -14,7 +14,6 @@ import {
   Bot as FaRobot,
   PenTool as FaPenNib,
   Video as FaVideo,
-  Orbit,
   Search,
   Heart,
   Volume2,
@@ -24,8 +23,6 @@ import {
   Clock,
   Users,
   Compass,
-  Play,
-  Pause,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -33,7 +30,6 @@ import { createPortal } from "react-dom";
 import events from "../data/events";
 import { RULES, GROUPS } from "../data/rules";
 import EventCard from "./events/EventCard";
-import ThreeDCarousel from "./events/ThreeDCarousel";
 import { loadPaperAsset } from "../three/paperAsset";
 import {
   initPaperCards,
@@ -140,7 +136,6 @@ function EventExplorer({ onSelect }) {
   const [mode3d, setMode3d] = useState(
     prefersReduced() ? "fallback" : "pending",
   );
-  const [showCarousel, setShowCarousel] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -466,31 +461,8 @@ function EventExplorer({ onSelect }) {
           </p>
         </div>
 
-        {/* Action controls: Play 3D Showcase & Interactive Audio */}
+        {/* Action controls: Interactive Audio */}
         <div className="flex items-center gap-2">
-          {/* Play 3D Button */}
-          <button
-            type="button"
-            onClick={() => {
-              playTone(soundEnabled, "pop");
-              setShowCarousel((prev) => !prev);
-            }}
-            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold shadow-xs transition-all duration-200 ${
-              showCarousel
-                ? "border-accent bg-accent text-white shadow-accent/25 ring-2 ring-accent/30"
-                : "border-primary/40 bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary hover:to-accent hover:text-white"
-            }`}
-            title={showCarousel ? "Close 3D View" : "Play 3D Auto-Rotating Events Showcase"}
-            aria-pressed={showCarousel}
-          >
-            {showCarousel ? (
-              <Pause className="size-3.5 fill-current" />
-            ) : (
-              <Play className="size-3.5 fill-current" />
-            )}
-            <span>{showCarousel ? "Close 3D" : "Play 3D"}</span>
-          </button>
-
           {/* Sound Toggle */}
           <button
             type="button"
@@ -511,34 +483,6 @@ function EventExplorer({ onSelect }) {
           </button>
         </div>
       </div>
-
-      {/* ================= OPTIONAL 3D ORBIT SHOWCASE ================= */}
-      {showCarousel && (
-        <div className="mb-6 rounded-3xl border border-accent/30 bg-gradient-to-b from-primary/[0.04] to-surface p-3 sm:p-5 shadow-inner">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-accent flex items-center gap-1.5">
-              <Orbit className="size-3.5" />
-              <span>Interactive 3D Carousel Arena</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowCarousel(false)}
-              className="text-xs font-bold text-muted hover:text-foreground"
-            >
-              Close
-            </button>
-          </div>
-          <ThreeDCarousel
-            events={events}
-            rules={RULES}
-            savedIds={savedIds}
-            onToggleSave={toggleSave}
-            onPreviewPoster={setPreviewEvent}
-            onViewRules={setSheet}
-            onRegister={register}
-          />
-        </div>
-      )}
 
       {/* ================= SEARCH & SMART FILTER BAR ================= */}
       <div className="mb-3.5 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">

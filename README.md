@@ -49,7 +49,7 @@ kle-aura/
         ├── styles/       # index.css (tokens) · App.css
         ├── components/   # UI sections
         │   ├── admin/    # admin dashboard pieces
-        │   └── events/   # EventCard · ThreeDCarousel
+        │   └── events/   # EventCard
         ├── pages/        # StudentPortal · AdminPortal
         ├── data/         # events · rules · gallery · college content
         ├── hooks/        # useReveal · useTilt
