@@ -22,7 +22,42 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "ai-aura-dev-secret-key-2026"
 
 const app = express();
 
-app.use(cors());
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  // Vercel production and preview domains
+  if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) return true;
+  // Google AI Studio preview and development environments
+  if (/^https:\/\/([a-z0-9-]+\.)*run\.app$/i.test(origin)) return true;
+  // Render backend & frontend domains
+  if (/^https:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return true;
+  // Local development on any port
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) return true;
+  // Custom configured frontend origins
+  if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return true;
+  if (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) return true;
+  return false;
+};
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
+    // Allow non-production environments to operate smoothly
+    if (process.env.NODE_ENV !== "production") {
+      return callback(null, true);
+    }
+    // Silently deny unpermitted origins without throwing 500 error
+    return callback(null, false);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
@@ -38,11 +73,12 @@ app.get("/api/health", (req, res) => {
 mongoose.set("bufferCommands", false);
 const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 if (MONGO_URI) {
+  const maskedUri = MONGO_URI.replace(/:([^:@]+)@/, ":****@");
   mongoose
-    .connect(MONGO_URI, { serverSelectionTimeoutMS: 2000 })
-    .then(() => console.log("✅ Connected to MongoDB"))
+    .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
+    .then(() => console.log(`✅ Connected to MongoDB (${maskedUri})`))
     .catch((err) =>
-      console.warn("⚠️ MongoDB connection failed, in-memory store active:", err.message)
+      console.warn(`⚠️ MongoDB connection failed (${maskedUri}):`, err.message)
     );
 } else {
   console.log("ℹ️ No MONGO_URI provided, in-memory store active");

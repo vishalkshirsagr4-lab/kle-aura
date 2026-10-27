@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import events from "../data/events";
 import { formatShort, formatTime } from "../utils";
+import { api } from "../api";
 
 const initialState = {
   fullname: "",
@@ -158,15 +159,15 @@ function RegistrationForm({ selectedEvent, info }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/registrations", {
+      const data = await api("/api/registrations", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formData,
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.message || "Registration failed.");
+      if (!data || data.success === false) {
+        throw new Error(
+          (data && data.message) || "Registration could not be confirmed."
+        );
       }
 
       setMessage({
@@ -177,7 +178,10 @@ function RegistrationForm({ selectedEvent, info }) {
       window.dispatchEvent(new Event("aura:registered"));
       setFormData(initialState);
     } catch (error) {
-      setMessage({ type: "warning", text: error.message });
+      setMessage({
+        type: "warning",
+        text: error.message || "Registration failed. Please try again.",
+      });
     } finally {
       setLoading(false);
     }

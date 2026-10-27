@@ -1,8 +1,12 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Setting = require("../models/Setting");
 const requireAdmin = require("../middleware/auth");
+const memoryStore = require("../db/memoryStore");
 
 const router = express.Router();
+
+const isDbConnected = () => mongoose.connection.readyState === 1;
 
 const REQUIRED = ["eventDate", "startTime", "endTime", "venue"];
 const SOCIAL = ["instagram", "youtube", "facebook", "linkedin", "website"];
@@ -84,12 +88,14 @@ const validateDepartmentSocials = (body = {}) => {
 // GET /api/settings  (public — the student portal reads these)
 router.get("/", async (req, res) => {
   try {
-    const doc = await Setting.findOne({ key: "main" }).lean();
-    res.json(publicView(doc || {}));
+    if (isDbConnected()) {
+      const doc = await Setting.findOne({ key: "main" }).lean();
+      if (doc) return res.json(publicView(doc));
+    }
   } catch (error) {
-    console.error("Settings error:", error);
-    res.status(500).json({ success: false, message: "Could not load settings." });
+    console.warn("Settings DB query error, using in-memory store:", error.message);
   }
+  res.json(publicView(memoryStore.getSettings()));
 });
 
 // PUT /api/settings  (admin)
@@ -99,12 +105,27 @@ router.put("/", requireAdmin, async (req, res) => {
     if (socialError) {
       return res.status(400).json({ success: false, message: socialError });
     }
-    const doc = await Setting.findOneAndUpdate(
-      { key: "main" },
-      { $set: writable(req.body) },
-      { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
-    ).lean();
-    res.json(publicView(doc));
+
+    if (isDbConnected()) {
+      try {
+        const doc = await Setting.findOneAndUpdate(
+          { key: "main" },
+          { $set: writable(req.body) },
+          { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
+        ).lean();
+        return res.json(publicView(doc));
+      } catch (dbErr) {
+        console.warn("Settings DB update error, using in-memory store:", dbErr.message);
+      }
+    }
+
+    const current = memoryStore.getSettings();
+    const updated = {
+      ...current,
+      ...writable(req.body),
+    };
+    memoryStore.setSettings(updated);
+    res.json(publicView(updated));
   } catch (error) {
     console.error("Settings error:", error);
     if (error.name === "ValidationError") {
