@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight as FaArrowRight, Menu, X } from "lucide-react";
 
 const LINKS = [
+  { href: "#championship-showcase", label: "🏆 Trophy & Honors" },
   { href: "#events", label: "Events" },
   { href: "#rules", label: "Rules" },
   { href: "#college", label: "Our College" },
@@ -66,6 +67,16 @@ function StickyNav() {
           ))}
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-xl border border-amber-400/50 bg-amber-500/15 px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-300 transition hover:bg-amber-400 hover:text-slate-950 sm:px-4 sm:text-sm cursor-pointer"
+            onClick={() => {
+              setMenuOpen(false);
+              window.dispatchEvent(new Event("aura:open-brochure"));
+            }}
+          >
+            Brochure PDF
+          </button>
           <a
             className="inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-white no-underline shadow-sm transition hover:bg-indigo-700 sm:gap-2 sm:px-4 sm:text-sm"
             href="#register"
@@ -89,6 +100,17 @@ function StickyNav() {
             id="mobile-navigation"
             className="grid basis-full gap-1 border-t border-border pt-2 md:hidden"
           >
+            <button
+              type="button"
+              className="flex items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+              onClick={() => {
+                setMenuOpen(false);
+                window.dispatchEvent(new Event("aura:open-brochure"));
+              }}
+            >
+              <span>📄 View &amp; Download Brochure (PDF)</span>
+              <span>→</span>
+            </button>
             {LINKS.map((l) => (
               <a
                 key={l.href}

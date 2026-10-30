@@ -15,6 +15,7 @@ import {
   Globe as FaGlobe,
   ArrowRight as FaArrowRight,
   MapPin as FaLocationDot,
+  Eye as FaEye,
 } from "lucide-react";
 import {
   PDF_URL,
@@ -55,6 +56,13 @@ function RulesSection() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:gap-3">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("aura:open-brochure"))}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-md transition-transform active:scale-[.98] sm:px-6 sm:text-base cursor-pointer"
+          >
+            <FaEye /> View Brochure
+          </button>
           <a
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-cyan to-[#9db4ff] px-5 py-3 text-sm font-extrabold text-obsidian transition-transform active:scale-[.98] sm:px-6 sm:text-base"
             href={PDF_URL}

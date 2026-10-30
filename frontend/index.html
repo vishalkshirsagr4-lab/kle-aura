@@ -20,6 +20,19 @@
       rel="stylesheet"
     />
     <title>AI-AURA · PUC College Events</title>
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('aura-theme-v2') || 'light';
+          document.documentElement.setAttribute('data-theme', t);
+          if (t === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

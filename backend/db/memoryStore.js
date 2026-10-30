@@ -24,8 +24,8 @@ let announcements = [
   },
   {
     _id: "507f191e810c19729de860ec",
-    title: "Exciting Cash Prizes & Free Certificate Courses",
-    message: "Trophies, certificates, and exciting cash prizes for winners. All participants receive digital certificates and workshop entry.",
+    title: "Prestigious Trophies & State-Level Certificates",
+    message: "Championship rolling trophies, category cups, and merit medals for winners. All participants receive official state certificates and workshop entry.",
     category: "general",
     date: "2026-11-04",
     createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),

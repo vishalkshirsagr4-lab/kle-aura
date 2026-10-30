@@ -7,6 +7,7 @@ import {
   Landmark as FaBuildingColumns,
   MapPin as FaLocationDot,
   Image as FaImage,
+  FileText as FaFileText,
 } from "lucide-react";
 import { formatDash, eventStart } from "../utils";
 import { COLLEGE } from "../data/college";
@@ -125,6 +126,13 @@ function Hero({ info }) {
             >
               View rules
             </a>
+            <button
+              type="button"
+              className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500/20 px-5 py-3 text-sm font-bold text-amber-300 transition hover:bg-amber-400 hover:text-slate-950 shadow-md backdrop-blur"
+              onClick={() => window.dispatchEvent(new Event("aura:open-brochure"))}
+            >
+              <FaFileText aria-hidden="true" /> Brochure (PDF)
+            </button>
             <button
               type="button"
               className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/25 bg-transparent px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"

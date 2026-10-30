@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useLayoutEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useLayoutEffect, useRef, useMemo, Fragment } from "react";
 import {
   Star,
   X as FaXmark,
@@ -33,13 +33,6 @@ import { createPortal } from "react-dom";
 import events from "../data/events";
 import { RULES, GROUPS } from "../data/rules";
 import EventCard from "./events/EventCard";
-import ThreeDCarousel from "./events/ThreeDCarousel";
-import { loadPaperAsset } from "../three/paperAsset";
-import {
-  initPaperCards,
-  disposePaperCards,
-} from "../three/paperCardManager";
-import { disposePaperTextures } from "../three/paperTexture";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -137,9 +130,7 @@ function EventExplorer({ onSelect }) {
   const [previewEvent, setPreviewEvent] = useState(null); // event for full poster preview
   const [searchQuery, setSearchQuery] = useState("");
   const [soundEnabled, setSoundEnabled] = useState(false);
-  const [mode3d, setMode3d] = useState(
-    prefersReduced() ? "fallback" : "pending",
-  );
+
   const [showCarousel, setShowCarousel] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -281,59 +272,7 @@ function EventExplorer({ onSelect }) {
     }
   };
 
-  // Lazy-load the Three.js VAT paper assets when approaching section
-  useEffect(() => {
-    if (prefersReduced()) return undefined;
-    const el = sectionRef.current;
-    if (!el || !("IntersectionObserver" in window)) {
-      if (el && !assetStarted.current) {
-        assetStarted.current = true;
-        loadPaperAsset()
-          .then((animData) => {
-            setMode3d(initPaperCards(animData) ? "3d" : "fallback");
-          })
-          .catch((error) => {
-            console.warn("3D paper asset failed; using high-fidelity fallback.", error);
-            setMode3d("fallback");
-          });
-      }
-      return undefined;
-    }
 
-    let cancelled = false;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting || assetStarted.current) return;
-        assetStarted.current = true;
-        io.disconnect();
-        loadPaperAsset()
-          .then((animData) => {
-            if (cancelled) return;
-            setMode3d(initPaperCards(animData) ? "3d" : "fallback");
-          })
-          .catch((error) => {
-            if (cancelled) return;
-            console.warn("3D paper asset failed; using high-fidelity fallback.", error);
-            setMode3d("fallback");
-          });
-      },
-      { rootMargin: "600px 0px" },
-    );
-    io.observe(el);
-
-    return () => {
-      cancelled = true;
-      io.disconnect();
-    };
-  }, []);
-
-  // Cleanup 3D resources on unmount
-  useEffect(() => {
-    return () => {
-      disposePaperCards();
-      disposePaperTextures();
-    };
-  }, []);
 
   // 3D cascade entrance animation for event cards
   useLayoutEffect(() => {
@@ -427,7 +366,6 @@ function EventExplorer({ onSelect }) {
     };
   }, [sheet, previewEvent, step, stepPreview]);
 
-  const handle3dFail = useCallback(() => setMode3d("fallback"), []);
 
   // Compute category counts
   const categoryCounts = useMemo(() => {
@@ -457,9 +395,9 @@ function EventExplorer({ onSelect }) {
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1 border-l border-border/50">
-          <span className="text-lg sm:text-2xl font-black text-accent">₹50K+</span>
+          <span className="text-lg sm:text-2xl font-black text-accent">36 Cups</span>
           <span className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">
-            Prizes &amp; Trophies
+            Trophies &amp; Rolling Cup
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1 border-t sm:border-t-0 sm:border-l border-border/50">
@@ -489,33 +427,12 @@ function EventExplorer({ onSelect }) {
           </p>
         </div>
 
-        {/* Action controls: Play 3D Showcase & Interactive Audio */}
+        {/* Action controls: Interactive Audio */}
         <div className="flex items-center gap-2">
-          {/* Play 3D Button */}
-          <button
-            type="button"
-            onClick={() => {
-              playTone(soundEnabled, "pop");
-              const next = !showCarousel;
-              setShowCarousel(next);
-              if (next && soundEnabled) playCarouselMusic();
-              else if (!next) stopCarouselMusic();
-            }}
-            className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold shadow-xs transition-all duration-200 ${
-              showCarousel
-                ? "border-accent bg-accent text-white shadow-accent/25 ring-2 ring-accent/30"
-                : "border-primary/40 bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary hover:to-accent hover:text-white"
-            }`}
-            title={showCarousel ? "Close 3D View" : "Play 3D Auto-Rotating Events Showcase"}
-            aria-pressed={showCarousel}
-          >
-            {showCarousel ? (
-              <Pause className="size-3.5 fill-current" />
-            ) : (
-              <Play className="size-3.5 fill-current" />
-            )}
-            <span>{showCarousel ? "Close 3D" : "Play 3D"}</span>
-          </button>
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-surface px-3 py-1.5 text-xs font-bold text-muted">
+            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>{list.length} Events Available</span>
+          </span>
 
           {/* Sound Toggle */}
           <button
@@ -524,52 +441,19 @@ function EventExplorer({ onSelect }) {
               const next = !soundEnabled;
               setSoundEnabled(next);
               playTone(next, "pop");
-              if (next && showCarousel) playCarouselMusic();
-              else if (!next) stopCarouselMusic();
             }}
             className={`grid size-8 place-items-center rounded-xl border shadow-xs transition ${
               soundEnabled
                 ? "border-accent bg-accent/15 text-accent"
                 : "border-border bg-surface text-muted hover:text-foreground"
             }`}
-            title={soundEnabled ? "Mute carousel music and interaction sounds" : "Enable carousel music and interaction sounds"}
-            aria-label={soundEnabled ? "Carousel music and sounds on" : "Enable carousel music and sounds"}
+            title={soundEnabled ? "Mute interaction sounds" : "Enable interaction sounds"}
+            aria-label={soundEnabled ? "Interaction sounds on" : "Enable interaction sounds"}
           >
             {soundEnabled ? <Volume2 className="size-3.5" /> : <VolumeX className="size-3.5" />}
           </button>
         </div>
       </div>
-
-      {/* ================= OPTIONAL 3D ORBIT SHOWCASE ================= */}
-      {showCarousel && (
-        <div className="mb-6 rounded-3xl border border-accent/30 bg-gradient-to-b from-primary/[0.04] to-surface p-3 sm:p-5 shadow-inner">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-accent flex items-center gap-1.5">
-              <Orbit className="size-3.5" />
-              <span>Interactive 3D Carousel Arena</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setShowCarousel(false);
-                stopCarouselMusic();
-              }}
-              className="text-xs font-bold text-muted hover:text-foreground"
-            >
-              Close
-            </button>
-          </div>
-          <ThreeDCarousel
-            events={events}
-            rules={RULES}
-            savedIds={savedIds}
-            onToggleSave={toggleSave}
-            onPreviewPoster={setPreviewEvent}
-            onViewRules={setSheet}
-            onRegister={register}
-          />
-        </div>
-      )}
 
       {/* ================= SEARCH & SMART FILTER BAR ================= */}
       <div className="mb-3.5 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">
@@ -788,7 +672,7 @@ function EventExplorer({ onSelect }) {
       {/* ================= RESPONSIVE COLUMNS & ROWS GRID ================= */}
       <div
         ref={gridRef}
-        className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 2xl:grid-cols-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
       >
         {list.map((r) => {
           const ev = events.find((e) => e.id === r.id);
@@ -802,13 +686,11 @@ function EventExplorer({ onSelect }) {
               rule={r}
               hit={hit}
               dimmed={dim}
-              mode={mode3d}
               isSaved={isSaved}
               onToggleSave={toggleSave}
               onPreviewPoster={setPreviewEvent}
               onViewRules={setSheet}
               onRegister={register}
-              onFail={handle3dFail}
             />
           );
         })}
@@ -1134,6 +1016,45 @@ function EventExplorer({ onSelect }) {
                   <span className="font-bold text-accent">Judging Focus:</span>{" "}
                   {current.judging}
                 </div>
+
+                {/* Coordinators Box */}
+                {(current.facultyCoordinator || current.studentCoordinator) && (
+                  <div className="mt-3.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-800/50 p-3">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-muted block mb-2">
+                      Event In-Charge Coordinators
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {current.facultyCoordinator && (
+                        <div className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-surface p-2.5">
+                          <div>
+                            <span className="text-[10px] font-bold text-muted block">Faculty In-Charge:</span>
+                            <span className="font-bold text-foreground text-xs">{current.facultyCoordinator.name}</span>
+                          </div>
+                          <a
+                            href={`tel:${current.facultyCoordinator.phone}`}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-xs font-bold text-primary hover:bg-primary hover:text-white transition shrink-0"
+                          >
+                            📞 {current.facultyCoordinator.phone}
+                          </a>
+                        </div>
+                      )}
+                      {current.studentCoordinator && (
+                        <div className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-surface p-2.5">
+                          <div>
+                            <span className="text-[10px] font-bold text-muted block">Student In-Charge:</span>
+                            <span className="font-bold text-foreground text-xs">{current.studentCoordinator.name}</span>
+                          </div>
+                          <a
+                            href={`tel:${current.studentCoordinator.phone}`}
+                            className="inline-flex items-center gap-1 rounded-md bg-accent/10 border border-accent/20 px-2 py-1 text-xs font-bold text-accent hover:bg-accent hover:text-white transition shrink-0"
+                          >
+                            📞 {current.studentCoordinator.phone}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {current.proposed && (
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs font-semibold text-amber-900 dark:text-amber-300">

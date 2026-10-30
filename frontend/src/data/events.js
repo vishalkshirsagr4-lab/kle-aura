@@ -16,7 +16,7 @@ import {
   MailOpen as FaEnvelopeOpenText,
   BookOpen as FaBookOpen,
   Drama as FaMasksTheater,
-  Guitar as FaGuitar,
+  Lightbulb as FaLightbulb,
 } from "lucide-react";
 
 // icon is a Lucide React component
@@ -193,11 +193,11 @@ const events = [
   },
   {
     id: 18,
-    name: "SOLO INSTRUMENTAL",
-    icon: FaGuitar,
-    category: "Music",
-    group: "Stage",
-    tagline: "Let your musical instrument sing with virtuosity, tone, and rhythm",
+    name: "UNIQUE IDEA",
+    icon: FaLightbulb,
+    category: "Innovation",
+    group: "AI & Digital",
+    tagline: "Small Ideas - Big Impact! Present smart prototypes, models, and real-world solutions",
     image: "/images/events/event-18-solo-instrumental.jpg",
     accentColor: "#f59e0b",
   },

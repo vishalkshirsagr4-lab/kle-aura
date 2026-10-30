@@ -3,12 +3,14 @@ import Hero from "../components/Hero";
 import Announcements from "../components/Announcements";
 import Marquee from "../components/Marquee";
 import StatsBand from "../components/StatsBand";
+import TrophyOrbitShowcase from "../components/TrophyOrbitShowcase";
 import EventExplorer from "../components/EventExplorer";
 import RulesSection from "../components/RulesSection";
 import CollegeFacilities from "../components/CollegeFacilities";
 import CollegeGallery from "../components/CollegeGallery";
 import LiveRegistrations from "../components/LiveRegistrations";
 import PosterPopup from "../components/PosterPopup";
+import BrochureModal from "../components/BrochureModal";
 import StickyNav from "../components/StickyNav";
 import RegistrationForm from "../components/RegistrationForm";
 import Footer from "../components/Footer";
@@ -40,6 +42,7 @@ function StudentPortal() {
   return (
     <div className="mx-auto max-w-[1320px] px-4 py-4 sm:px-8 sm:py-8 lg:px-10" id="top">
       <PosterPopup />
+      <BrochureModal />
       <StickyNav />
       <LiveRegistrations />
       <Hero info={info} />
@@ -49,6 +52,9 @@ function StudentPortal() {
       </div>
       <div className="reveal translate-y-12 opacity-0 transition duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none [&.in]:translate-y-0 [&.in]:opacity-100">
         <StatsBand />
+      </div>
+      <div>
+        <TrophyOrbitShowcase onSelectEvent={pick} />
       </div>
       <div>
         <EventExplorer onSelect={pick} />
