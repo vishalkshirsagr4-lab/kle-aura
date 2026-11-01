@@ -23,7 +23,7 @@ export const COLLEGE = {
 };
 
 export const SOCIAL_PLATFORMS = [
-  { name: "Instagram", Icon: Instagram, placeholder: "https://instagram.com/your-account" },
+  { name: "Instagrama", Icon: Instagram, placeholder: "https://instagram.com/your-account" },
   { name: "Facebook", Icon: Facebook, placeholder: "https://facebook.com/your-page" },
   { name: "YouTube", Icon: Youtube, placeholder: "https://youtube.com/@your-channel" },
   { name: "LinkedIn", Icon: Linkedin, placeholder: "https://linkedin.com/company/your-page" },
@@ -83,7 +83,7 @@ export const COURSES = {
     { sem: "III", items: ["JavaScript & React Basics", "Git & GitHub"] },
     { sem: "IV", items: ["Node.js & MongoDB", "Cloud Fundamentals"] },
     { sem: "V", items: ["AI & Machine Learning Basics", "Cyber Security Essentials"] },
-    { sem: "VI", items: ["Placement Aptitude & Interview Skills", "Capstone Project Mentoring"] },
+    { sem: "VI", items: ["Placementa Aptitude & Interview Skills", "Capstone Project Mentoring"] },
   ],
   BBA: [
     { sem: "I", items: ["Business Communication", "Tally Basics"] },

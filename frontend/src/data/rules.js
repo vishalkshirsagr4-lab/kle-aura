@@ -72,7 +72,7 @@ export const RULES = [
       "Total time allowed: 1 hour 30 minutes (90 minutes).",
       "Bring your own pencils (graphite/charcoal), erasers, and sharpeners.",
       "Drawing sheets are provided by the college.",
-      "Only pencil sketching is permitted (no colours, paints, sketch pens, or markers).",
+      "Only pencil sketching is permitted (noo colours, paints, sketch pens, or markers).",
       "Shading, hatching, and blending techniques are allowed.",
     ],
     judging: "Composition, detailing, shading depth, and drawing technique.",
