@@ -20,7 +20,6 @@ import { api } from "../api";
 
 const initialState = {
   fullname: "",
-  email: "",
   college: "",
   phone: "",
   event: "",
