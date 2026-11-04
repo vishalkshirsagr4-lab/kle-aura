@@ -55,17 +55,34 @@ function Footer({ info }) {
             {w.text}
           </a>
         ))}
+      </span>
+
+      {/* Featured external platform link */}
+      <div className="basis-full px-4 sm:px-6">
         <a
           href="https://nukrentserve.netlify.app"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Visit NukrentServe website (opens in a new tab)"
-          className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/5 px-3 py-1.5 font-bold text-primary transition-colors hover:border-accent hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          aria-label="Visit NukrentServe at https://nukrentserve.netlify.app (opens in a new tab)"
+          className="group mx-auto flex w-full max-w-3xl flex-col items-center justify-center gap-3 rounded-2xl border-2 border-indigo-500/40 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 px-5 py-5 text-center shadow-lg shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/70 hover:shadow-xl hover:shadow-indigo-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 sm:flex-row sm:justify-between sm:px-7"
         >
-          <span>NukrentServe</span>
-          <ExternalLink className="size-3.5" aria-hidden="true" />
+          <span className="flex flex-col items-center gap-1 sm:items-start">
+            <span className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">
+              Explore our platform
+            </span>
+            <span className="text-lg font-black tracking-tight text-foreground sm:text-xl">
+              NukrentServe
+            </span>
+            <span className="break-all text-sm font-semibold text-primary underline decoration-primary/40 underline-offset-4 sm:text-base">
+              https://nukrentserve.netlify.app
+            </span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-extrabold text-white shadow-md shadow-indigo-600/25 transition-all group-hover:bg-indigo-700 group-hover:shadow-lg">
+            Visit Website
+            <ExternalLink className="size-4" aria-hidden="true" />
+          </span>
         </a>
-      </span>
+      </div>
 
       {/* Admin Portal Link */}
       <div className="basis-full">
