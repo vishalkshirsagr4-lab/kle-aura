@@ -9,6 +9,7 @@ import {
   PhoneCall,
   MessageSquare,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { formatShort, formatTime } from "../utils";
 import { COLLEGE } from "../data/college";
@@ -54,6 +55,16 @@ function Footer({ info }) {
             {w.text}
           </a>
         ))}
+        <a
+          href="https://nukrentserve.netlify.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit NukrentServe website (opens in a new tab)"
+          className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/5 px-3 py-1.5 font-bold text-primary transition-colors hover:border-accent hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        >
+          <span>NukrentServe</span>
+          <ExternalLink className="size-3.5" aria-hidden="true" />
+        </a>
       </span>
 
       {/* Admin Portal Link */}
